@@ -1,12 +1,9 @@
 package com.tosi.user.dto;
 
-import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-public class UserInfoResponse {
+public class UserInfoResponseDto {
 
     private Integer userId;
     private String email;

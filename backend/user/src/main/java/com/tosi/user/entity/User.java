@@ -25,8 +25,8 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "user_nickname")
-    private String userNickname;
+    @Column(name = "nickname")
+    private String nickname;
 
     @CreationTimestamp
     @Column(name = "reg_date", nullable = false)
@@ -36,10 +36,10 @@ public class User {
     private String bookshelfName;
 
     @Builder
-    public User(String email, String password, String userNickname, String bookshelfName) {
+    public User(String email, String password, String nickname, String bookshelfName) {
         this.email = email;
         this.password = password;
-        this.userNickname = userNickname;
+        this.nickname = nickname;
         this.bookshelfName = bookshelfName;
     }
 

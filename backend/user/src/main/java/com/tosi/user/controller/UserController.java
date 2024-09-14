@@ -1,14 +1,12 @@
 package com.tosi.user.controller;
 
-import com.tosi.user.dto.UserInfoRequest;
 import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.user.dto.UserInfoRequestDto;
 import com.tosi.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -16,13 +14,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
-    // 회원 가입
+    @Operation(summary = "회원가입")
     @PostMapping
-    public ResponseEntity<SuccessResponse> postUser(@RequestBody UserInfoRequest userInfoRequest) {
-        SuccessResponse successResponse = userService.postUser(userInfoRequest);
+    public ResponseEntity<SuccessResponse> addUser(@RequestBody UserInfoRequestDto userInfoRequestDto) {
+        SuccessResponse successResponse = userService.addUser(userInfoRequestDto);
         return ResponseEntity.ok()
                 .body(successResponse);
+    }
 
+    @Operation(summary = "이메일 중복 체크")
+    @GetMapping("/emaildup")
+    public ResponseEntity<Boolean> findUserEmailDuplication(@RequestParam String email) {
+        boolean isEmailDup = userService.findUserEmailDuplication(email);
+        return ResponseEntity.ok()
+                .body(isEmailDup);
+    }
+
+    @Operation(summary = "닉네임 중복 체크")
+    @GetMapping("/nickdup")
+    public ResponseEntity<Boolean> findUserNicknameDuplication(@RequestParam String nick) {
+        boolean isNicknameDup = userService.findUserNickNameDuplication(nick);
+        return ResponseEntity.ok()
+                .body(isNicknameDup);
     }
 
 //    // 회원 정보 조회

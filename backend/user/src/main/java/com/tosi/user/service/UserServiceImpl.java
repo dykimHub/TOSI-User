@@ -1,8 +1,11 @@
 package com.tosi.user.service;
 
-import com.tosi.user.dto.UserInfoRequest;
-import com.tosi.user.entity.User;
 import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.user.dto.ChildInfoDto;
+import com.tosi.user.dto.UserInfoRequestDto;
+import com.tosi.user.entity.Child;
+import com.tosi.user.entity.User;
+import com.tosi.user.repository.ChildRepository;
 import com.tosi.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,36 +16,62 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ChildRepository childRepository;
 
+    /**
+     * UserInfoRequestDto 객체의 회원 정보로 User 엔티티를 생성하고 users 테이블에 저장합니다.
+     * UserInfoRequestDto 객체의 회원의 아이 목록 정보로 Child 엔티티를 각각 생성하고 children 테이블에 저장합니다.
+     *
+     * @param userInfoRequestDto 회원가입에 필요한 정보가 담긴 UserInfoRequestDto 객체
+     * @return users, children 테이블 저장에 성공하면 SuccesResponse 객체를 반환
+     */
     @Transactional
-    public SuccessResponse postUser(UserInfoRequest userInfoRequest) {
+    public SuccessResponse addUser(UserInfoRequestDto userInfoRequestDto) {
+
         User user = User.builder()
-                .email(userInfoRequest.getEmail())
-                .password(userInfoRequest.getPassword())
-                .userNickname(userInfoRequest.getUserNickname())
-                .bookshelfName(userInfoRequest.getUserNickname() + "님의 책장")
+                .email(userInfoRequestDto.getEmail())
+                .password(userInfoRequestDto.getPassword())
+                .nickname(userInfoRequestDto.getUserNickname())
+                .bookshelfName(userInfoRequestDto.getUserNickname() + "님의 책장")
                 .build();
-        userRepository.save(user);
+        User newUser = userRepository.save(user);
+
+        for (ChildInfoDto childInfoDto : userInfoRequestDto.getChildInfoDtoList()) {
+            Child child = Child.builder()
+                    .userId(newUser.getUserId())
+                    .childName(childInfoDto.getChildName())
+                    .childGender(childInfoDto.getChildGender())
+                    .build();
+            childRepository.save(child);
+
+        }
 
         return SuccessResponse.of("회원가입이 성공적으로 완료되었습니다.");
     }
 
-//    // 회원 가입
-//    @Transactional
-//    public int insertUser (UserInfo userInfo) {
-//
-//        User user = userInfo.toEntity();
-//
-//        User insertedUser = userRepository.save(user);
-//
-//        List<ChildInfo> childrenList = userInfo.getChildrenList();
-//
-//        for (int i = 0; i < childrenList.size(); i++) {
-//            Child child = childrenList.get(i).toEntity(insertedUser.getUserId());
-//            childRepository.save(child);
-//        }
-//        return insertedUser.getUserId();
-//    }
+    /**
+     * users 테이블에 이메일이 일치하는 회원이 있는지 확인합니다.
+     *
+     * @param email 예비 회원 이메일
+     * @return users 테이블에 해당 이메일로 가입한 회원이 있으면 true, 아니면 false를 반환
+     */
+    @Override
+    public boolean findUserEmailDuplication(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * users 테이블에 닉네임이 일치하는 회원이 있는지 확인합니다.
+     *
+     * @param nick 예비 회원 닉네임
+     * @return users 테이블에 해당 닉네임으로 가입한 회원이 있으면 true, 아니면 false를 반환
+     */
+    @Override
+    public boolean findUserNickNameDuplication(String nick) {
+        return userRepository.existsByNickname(nick);
+    }
+
+
 //
 //    // 회원 정보 조회
 //    public User selectUser (int userId) {
@@ -125,18 +154,6 @@ public class UserServiceImpl implements UserService {
 //    }
 
 
-//    public boolean checkDup(String category, String input) {
-//        //category로 id, nickname의 값이 넘어오면 해당하는 중복검사 실행
-//        //true = 해당하는 값이 이미 있음
-//        boolean check = switch (category) {
-//            case "id" -> memberRepository.existsByMemberId(input);
-//
-//            case "nickname" -> memberRepository.existsByMemberNickname(input);
-//
-//            default -> throw new IllegalStateException("올바른 category가 아닙니다. ");
-//        };
-//        return check;
-//    }
 
 
 //    public TokenInfo login(OriginLoginRequestDto dto) {

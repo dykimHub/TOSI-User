@@ -1,8 +1,12 @@
 package com.tosi.user.service;
 
-import com.tosi.user.dto.UserInfoRequest;
 import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.user.dto.UserInfoRequestDto;
 
 public interface UserService {
-    SuccessResponse postUser(UserInfoRequest userInfoRequest);
+    SuccessResponse addUser(UserInfoRequestDto userInfoRequestDto);
+
+    boolean findUserEmailDuplication(String email);
+
+    boolean findUserNickNameDuplication(String nick);
 }

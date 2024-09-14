@@ -20,12 +20,13 @@ public class Child {
     private long userId;
     @Column(name = "child_name", nullable = false)
     private String childName;
-    @Column(name = "gender", nullable = false)
-    private int gender;
+    @Column(name = "child_gender", nullable = false)
+    private int childGender;
 
     @Builder
-    public Child(String childName, int gender) {
+    public Child(long userId, String childName, int childGender) {
+        this.userId = userId;
         this.childName = childName;
-        this.gender = gender;
+        this.childGender = childGender;
     }
 }

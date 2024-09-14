@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ChildRepository extends JpaRepository<Child, Integer> {
+public interface ChildRepository extends JpaRepository<Child, Long> {
 //    @Modifying
 //    @Query("delete from Child c where c.userId = :userId")
 //    void deleteByUserId(@Param("userId") Integer userId);

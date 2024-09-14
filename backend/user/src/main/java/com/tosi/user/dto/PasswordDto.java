@@ -3,7 +3,7 @@ package com.tosi.user.dto;
 import lombok.Data;
 
 @Data
-public class Password {
+public class PasswordDto {
 
     private String password;
 }
