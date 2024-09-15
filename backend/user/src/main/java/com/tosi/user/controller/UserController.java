@@ -1,7 +1,10 @@
 package com.tosi.user.controller;
 
+import com.tosi.user.common.JWT.TokenInfo;
 import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.UserInfoRequestDto;
+import com.tosi.user.dto.LoginDto;
+import com.tosi.user.dto.JoinDto;
+import com.tosi.user.dto.UserNChildrenDto;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +19,8 @@ public class UserController {
 
     @Operation(summary = "회원가입")
     @PostMapping
-    public ResponseEntity<SuccessResponse> addUser(@RequestBody UserInfoRequestDto userInfoRequestDto) {
-        SuccessResponse successResponse = userService.addUser(userInfoRequestDto);
+    public ResponseEntity<SuccessResponse> addUser(@RequestBody JoinDto joinDto) {
+        SuccessResponse successResponse = userService.addUser(joinDto);
         return ResponseEntity.ok()
                 .body(successResponse);
     }
@@ -32,10 +35,26 @@ public class UserController {
 
     @Operation(summary = "닉네임 중복 체크")
     @GetMapping("/nickdup")
-    public ResponseEntity<Boolean> findUserNicknameDuplication(@RequestParam String nick) {
-        boolean isNicknameDup = userService.findUserNickNameDuplication(nick);
+    public ResponseEntity<Boolean> findUserNicknameDuplication(@RequestParam String nickname) {
+        boolean isNicknameDup = userService.findUserNickNameDuplication(nickname);
         return ResponseEntity.ok()
                 .body(isNicknameDup);
+    }
+
+    @Operation(summary = "로그인")
+    @PostMapping("/login")
+    public ResponseEntity<TokenInfo> findUser(@RequestBody LoginDto loginDto) {
+        TokenInfo tokenInfo = userService.findUser(loginDto);
+        return ResponseEntity.ok()
+                .body(tokenInfo);
+    }
+
+    @Operation(summary = "회원 상세")
+    @GetMapping
+    public ResponseEntity<UserNChildrenDto> findUserChildren(@RequestHeader("Authorization") String accessToken) {
+        UserNChildrenDto userNChildrenDto = userService.findUserChildren(accessToken);
+        return ResponseEntity.ok()
+                .body(userNChildrenDto);
     }
 
 //    // 회원 정보 조회

@@ -1,15 +1,21 @@
 package com.tosi.user.service;
 
+import com.tosi.user.common.JWT.TokenInfo;
+import com.tosi.user.common.exception.CustomException;
+import com.tosi.user.common.exception.ExceptionCode;
 import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.ChildInfoDto;
-import com.tosi.user.dto.UserInfoRequestDto;
+import com.tosi.user.dto.*;
 import com.tosi.user.entity.Child;
 import com.tosi.user.entity.User;
+import com.tosi.user.entity.UserRole;
 import com.tosi.user.repository.ChildRepository;
 import com.tosi.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -17,30 +23,33 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ChildRepository childRepository;
+    private final AuthService authService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     /**
      * UserInfoRequestDto 객체의 회원 정보로 User 엔티티를 생성하고 users 테이블에 저장합니다.
      * UserInfoRequestDto 객체의 회원의 아이 목록 정보로 Child 엔티티를 각각 생성하고 children 테이블에 저장합니다.
      *
-     * @param userInfoRequestDto 회원가입에 필요한 정보가 담긴 UserInfoRequestDto 객체
+     * @param joinDto 회원가입에 필요한 정보가 담긴 UserInfoRequestDto 객체
      * @return users, children 테이블 저장에 성공하면 SuccesResponse 객체를 반환
      */
     @Transactional
-    public SuccessResponse addUser(UserInfoRequestDto userInfoRequestDto) {
+    public SuccessResponse addUser(JoinDto joinDto) {
 
         User user = User.builder()
-                .email(userInfoRequestDto.getEmail())
-                .password(userInfoRequestDto.getPassword())
-                .nickname(userInfoRequestDto.getUserNickname())
-                .bookshelfName(userInfoRequestDto.getUserNickname() + "님의 책장")
+                .email(joinDto.getEmail())
+                .password(passwordEncoder.encode(joinDto.getPassword()))
+                .nickname(joinDto.getNickname())
+                .bookshelfName(joinDto.getBookshelfName())
+                .role(UserRole.USER)
                 .build();
         User newUser = userRepository.save(user);
 
-        for (ChildInfoDto childInfoDto : userInfoRequestDto.getChildInfoDtoList()) {
+        for (ChildDto childDto : joinDto.getChildren()) {
             Child child = Child.builder()
                     .userId(newUser.getUserId())
-                    .childName(childInfoDto.getChildName())
-                    .childGender(childInfoDto.getChildGender())
+                    .childName(childDto.getChildName())
+                    .childGender(childDto.getChildGender())
                     .build();
             childRepository.save(child);
 
@@ -50,7 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * users 테이블에 이메일이 일치하는 회원이 있는지 확인합니다.
+     * 데이터베이스에 이메일이 일치하는 회원이 있는지 확인합니다.
      *
      * @param email 예비 회원 이메일
      * @return users 테이블에 해당 이메일로 가입한 회원이 있으면 true, 아니면 false를 반환
@@ -61,23 +70,33 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * users 테이블에 닉네임이 일치하는 회원이 있는지 확인합니다.
+     * 데이터베이스에 닉네임이 일치하는 회원이 있는지 확인합니다.
      *
-     * @param nick 예비 회원 닉네임
-     * @return users 테이블에 해당 닉네임으로 가입한 회원이 있으면 true, 아니면 false를 반환
+     * @param nickname 예비 회원 닉네임
+     * @return 데이터베이스에 해당 닉네임으로 가입한 회원이 있으면 true, 아니면 false를 반환
      */
     @Override
-    public boolean findUserNickNameDuplication(String nick) {
-        return userRepository.existsByNickname(nick);
+    public boolean findUserNickNameDuplication(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * LoginDto의 이메일로 회원을 조회한 후, 로그인 정보와 조회된 회원 객체를 매개변수로 토큰 생성 메서드를 호출합니다.
+     *
+     * @param loginDto 로그인 정보가 담긴 loginDto 객체
+     * @return TokenInfo 생성된 엑세스 토큰과 리프레시 토큰이 담긴 객체
+     * @throws CustomException 회원을 데이터베이스에서 찾을 수 없을 경우 발생
+     */
+    @Override
+    public TokenInfo findUser(LoginDto loginDto) {
+        User user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        return authService.findTokenInfo(loginDto, user);
     }
 
 
-//
-//    // 회원 정보 조회
-//    public User selectUser (int userId) {
-//        Optional<User> user = userRepository.findById(userId);
-//        return user.orElse(null);
-//    }
+
 //
 //    @Transactional
 //    // 회원 정보 수정
@@ -113,84 +132,7 @@ public class UserServiceImpl implements UserService {
 //        childRepository.deleteByUserId(userId);
 //        userRepository.deleteById(userId);
 //    }
-//
-//    // 로그인
-//    public Integer login (LoginInfo loginInfo) {
-//        User foundUser = userRepository.findByEmail(loginInfo.getEmail());
-//        if(foundUser != null && foundUser.getPassword().equals(loginInfo.getPassword())) {
-//            return foundUser.getUserId();
-//        }
-//        return null;
-//    }
-//
-//    // 이메일 중복 확인
-//    public boolean checkEmailDuplication (String email) {
-//        User searchedUser = userRepository.findByEmail (email);
-//        if (searchedUser != null){
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    // 비밀번호 확인
-//    public boolean checkPassword (Integer userId, String password) {
-//        Optional<User> optionalUser = userRepository.findById(userId);
-//
-//        if(optionalUser.isPresent()){
-//            User user = optionalUser.get();
-//            if(user.getPassword().equals(password)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//
-//    }
-//
-//    // 아이 목록 조회
-//    public List<Child> selectChildrenList(Integer userId) {
-//
-//        List<Child> childrenList = childRepository.findByUserIdOrderByMyBabyDescAndChildNameAsc(userId);
-//        return childrenList;
-//    }
 
-
-
-
-//    public TokenInfo login(OriginLoginRequestDto dto) {
-//        Member member = memberRepository.findByMemberId(dto.getMemberId()).orElseThrow(
-//                () -> new NoSuchElementException("회원이 없습니다."));
-//        checkPassword(dto.getMemberPass(), member.getPassword());
-//
-//        String username = member.getUsername();
-//        String accessToken = jwtTokenUtil.generateAccessToken(username);
-//        RefreshToken refreshToken = saveRefreshToken(username);
-//        log.info("로그인 성공");
-//        return TokenInfo.of(accessToken, refreshToken.getRefreshToken());
-//    }
-//
-//    private void checkPassword(String rawPassword, String findMemberPassword) {
-//        if (!passwordEncoder.matches(rawPassword, findMemberPassword)) {
-//            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-//        }
-//    }
-//
-//    private RefreshToken saveRefreshToken(String username) {
-//        //log.info("RefreshToken 등록");
-//        return refreshTokenRedisRepository.save(RefreshToken.createRefreshToken(username,
-//                jwtTokenUtil.generateRefreshToken(username), REFRESH_TOKEN_EXPIRATION_TIME.getValue()));
-//    }
-//
-//    public MemberInfoDto getMemberInfo(String username) {
-//        Member member = memberRepository.findByMemberId(username).orElseThrow(() -> new NoSuchElementException("회원이 없습니다."));
-//
-//        return MemberInfoDto.builder()
-//                .username(member.getUsername())
-//                .memberNickname(member.getMemberNickname())
-//                .memberProfile(member.getMemberProfile())
-//                .build();
-//    }
-//
-//
 //    @CacheEvict(value = CacheKey.USER, key = "#username")
 //    public void logout(TokenInfo tokenDto, String username) {
 //        String accessToken = resolveToken(tokenDto.getAccessToken());
@@ -198,54 +140,6 @@ public class UserServiceImpl implements UserService {
 //                .getRemainMilliSeconds(accessToken);
 //        refreshTokenRedisRepository.deleteById(username);
 //        logoutAccessTokenRedisRepository.save(LogoutAccessToken.of(accessToken, username, remainMilliSeconds));
-//    }
-//
-//    private String resolveToken(String token) {
-//        return token.substring(7);
-//    }
-//
-//    public TokenInfo reissue(String refreshToken) {
-//        refreshToken = resolveToken(refreshToken);
-//        String username = getCurrentUsername();
-//        RefreshToken redisRefreshToken = refreshTokenRedisRepository.findById(username).orElseThrow(NoSuchElementException::new);
-//
-//        if (refreshToken.equals(redisRefreshToken.getRefreshToken())) {
-//            return reissueRefreshToken(refreshToken, username);
-//        }
-//        throw new IllegalArgumentException("토큰이 일치하지 않습니다.");
-//    }
-//
-//    private TokenInfo reissueRefreshToken(String refreshToken, String username) {
-//        if (lessThanReissueExpirationTimesLeft(refreshToken)) {
-//            System.out.println("리프레시 토큰도 재발급");
-//            return TokenInfo.of(jwtTokenUtil.generateAccessToken(username), saveRefreshToken(username).getRefreshToken());
-//        }
-//        System.out.println("엑세스 토큰만 재발급");
-//        return TokenInfo.of(jwtTokenUtil.generateAccessToken(username), refreshToken);
-//    }
-//
-//    private boolean lessThanReissueExpirationTimesLeft(String refreshToken) {
-//        return jwtTokenUtil.getRemainMilliSeconds(refreshToken) < JwtExpiration.REISSUE_EXPIRATION_TIME.getValue();
-//    }
-//
-//    private String getCurrentUsername() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        UserDetails principal = (UserDetails) authentication.getPrincipal();
-//        return principal.getUsername();
-//    }
-//
-//    /**
-//     * token에서 memberId를 찾아서 Member 객체를 반환함
-//     *
-//     * @param accessToken 로그인한 회원의 token
-//     * @return 로그인한 Member 객체
-//     * @throws CustomException 해당 Member 객체를 찾을 수 없음
-//     */
-//    public Member findMemberEntity(String accessToken) {
-//        String memberId = jwtTokenUtil.getUsername(accessToken.substring(7));
-//        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new CustomException(ExceptionCode.MEMBER_NOT_FOUND));
-//
-//        return member;
 //    }
 
 
