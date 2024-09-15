@@ -1,6 +1,5 @@
 package com.tosi.user.common.config;
 
-import com.tosi.user.common.JWT.CustomUserDetailsService;
 import com.tosi.user.common.JWT.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
