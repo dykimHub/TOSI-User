@@ -95,7 +95,41 @@ public class UserServiceImpl implements UserService {
         return authService.findTokenInfo(loginDto, user);
     }
 
+    /**
+     * 이메일로 회원 정보를 조회한 후, 자녀 데이터베이스에서 해당 회원의 자녀 목록을 조회하여 반환합니다.
+     *
+     * @param accessToken 로그인한 회원의 토큰
+     * @return 회원 정보와 회원이 등록한 자녀의 정보가 담긴 UserNChildDto 객체
+     */
+    @Override
+    public UserNChildrenDto findUserChildren(String accessToken) {
+        UserDto userDto = findUserDto(accessToken);
+        List<ChildDto> children = childRepository.findByUserId(userDto.getUserId()).stream()
+                .map(child -> ChildDto.builder()
+                        .childName(child.getChildName())
+                        .childGender(child.getChildGender())
+                        .build())
+                .toList();
 
+        return UserNChildrenDto.builder()
+                .nickname(userDto.getNickname())
+                .bookshelfName(userDto.getBookshelfName())
+                .children(children)
+                .build();
+    }
+
+    /**
+     * 토큰에서 추출된 회원 이메일을 조회하여 UserDTO 객체로 변환하여 반환합니다.
+     *
+     * @param accessToken 로그인한 회원의 토큰
+     * @return UserDto 객체
+     */
+    @Override
+    public UserDto findUserDto(String accessToken) {
+        String email = authService.findUserAuthorization(accessToken);
+        return userRepository.findUserDtoByEmail(email)
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+    }
 
 //
 //    @Transactional

@@ -7,9 +7,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class LoginInfoDto {
+public class LoginDto {
 
     private String email;
+    private String nickname;
     private String password;
     private boolean autoLogin;
 
