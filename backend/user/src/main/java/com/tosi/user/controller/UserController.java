@@ -65,6 +65,23 @@ public class UserController {
                 .body(successResponse);
     }
 
+    @Operation(summary = "자녀 추가")
+    @PostMapping("/child")
+    public ResponseEntity<SuccessResponse> addChild(@RequestHeader("Authorization") String accessToken, @RequestBody ChildDto childDto) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        SuccessResponse successResponse = userService.addChild(userDto.getUserId(), childDto);
+        return ResponseEntity.ok()
+                .body(successResponse);
+    }
+
+    @Operation(summary = "자녀 삭제")
+    @DeleteMapping("/{childId}")
+    public ResponseEntity<SuccessResponse> deleteChild(@RequestHeader("Authorization") String accessToken, @PathVariable Long childId) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        SuccessResponse successResponse = userService.deleteChild(userDto.getUserId(), childId);
+        return ResponseEntity.ok()
+                .body(successResponse);
+    }
 
 //
 //

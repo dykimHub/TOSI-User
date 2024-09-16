@@ -156,6 +156,35 @@ public class UserServiceImpl implements UserService {
         return SuccessResponse.of("회원 정보가 성공적으로 수정되었습니다.");
     }
 
+    /**
+     *
+     * @param userId 회원 번호
+     * @param childDto
+     * @return
+     */
+    @CacheEvict(value = "userNchild", key = "#userId")
+    @Transactional
+    @Override
+    public SuccessResponse addChild(Long userId, ChildDto childDto) {
+        Child child = Child.builder()
+                .userId(userId)
+                .childName(childDto.getChildName())
+                .childGender(childDto.getChildGender())
+                .build();
+
+        childRepository.save(child);
+
+        return SuccessResponse.of("자녀 목록에 성공적으로 추가되었습니다.");
+    }
+
+    @CacheEvict(value = "userNchild", key = "#userId")
+    @Transactional
+    @Override
+    public SuccessResponse deleteChild(Long userId, Long childId) {
+        childRepository.deleteById(childId);
+        return SuccessResponse.of("해당 자녀가 성공적으로 삭제되었습니다.");
+    }
+
 
 //    @CacheEvict(value = CacheKey.USER, key = "#username")
 //    public void logout(TokenInfo tokenDto, String username) {
