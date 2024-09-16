@@ -35,10 +35,10 @@ public class UserServiceImpl implements UserService {
      * UserInfoRequestDto 객체의 회원의 아이 목록 정보로 Child 엔티티를 각각 생성하고 children 테이블에 저장합니다.
      *
      * @param joinDto 회원가입에 필요한 정보가 담긴 UserInfoRequestDto 객체
-     * @return users, children 테이블 저장에 성공하면 SuccesResponse 객체를 반환
+     * @return users, children 테이블 저장에 성공하면 SuccessResponse 객체를 반환
      */
     @Transactional
-    public SuccessResponse addUser(JoinDto joinDto) {
+    public SuccessResponse join(JoinDto joinDto) {
         findUserEmailDuplication(joinDto.getEmail());
         findUserNickNameDuplication(joinDto.getNickname());
 
@@ -61,14 +61,14 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        return SuccessResponse.of("회원가입이 성공적으로 완료되었습니다.");
+        return SuccessResponse.of("회원가입이 완료되었습니다.");
     }
 
     /**
      * 데이터베이스에 이메일이 일치하는 회원이 있는지 확인합니다.
      *
      * @param email 예비 회원 이메일
-     * @return users 데이터베이스에 해당 이메일로 가입한 회원이 없으면 SuccessResponse 반환
+     * @return users 데이터베이스에 해당 이메일로 가입한 회원이 없으면 SuccessResponse 객체 반환
      * @throws CustomException 데이터베이스에 해당 이메일로 가입한 회원이 있음
      */
     @Override
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
      * 데이터베이스에 닉네임이 일치하는 회원이 있는지 확인합니다.
      *
      * @param nickname 예비 회원 닉네임
-     * @return 데이터베이스에 해당 닉네임으로 가입한 회원이 없으면 SuccessResponse 반환
+     * @return 데이터베이스에 해당 닉네임으로 가입한 회원이 없으면 SuccessResponse 객체 반환
      * @throws CustomException 데이터베이스에 해당 닉네임으로 가입한 회원이 있음
      */
     @Override
@@ -100,10 +100,23 @@ public class UserServiceImpl implements UserService {
      * @throws CustomException 회원을 데이터베이스에서 찾을 수 없을 경우 발생
      */
     @Override
-    public TokenInfo findUser(LoginDto loginDto) {
+    public TokenInfo login(LoginDto loginDto) {
         User user = userRepository.findByEmail(loginDto.getEmail())
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
         return authService.findTokenInfo(loginDto, user);
+    }
+
+    /**
+     * 로그아웃을 요청한 회원의 토큰을 무효화 시킵니다.
+     *
+     * @param tokenInfo 로그인한 회원의 엑세스 토큰과 리프레시 토큰이 담긴 객체
+     * @param email 로그아웃을 시도한 회원의 이메일
+     * @return 로그아웃에 성공하면 SuccessResponse 객체 반환
+     */
+    @Override
+    public SuccessResponse logout(TokenInfo tokenInfo, String email) {
+        authService.invalidateToken(tokenInfo, email);
+        return SuccessResponse.of("로그아웃 되었습니다.");
     }
 
     /**
@@ -184,16 +197,5 @@ public class UserServiceImpl implements UserService {
         childRepository.deleteById(childId);
         return SuccessResponse.of("해당 자녀가 성공적으로 삭제되었습니다.");
     }
-
-
-//    @CacheEvict(value = CacheKey.USER, key = "#username")
-//    public void logout(TokenInfo tokenDto, String username) {
-//        String accessToken = resolveToken(tokenDto.getAccessToken());
-//        long remainMilliSeconds = jwtTokenUtil
-//                .getRemainMilliSeconds(accessToken);
-//        refreshTokenRedisRepository.deleteById(username);
-//        logoutAccessTokenRedisRepository.save(LogoutAccessToken.of(accessToken, username, remainMilliSeconds));
-//    }
-
 
 }

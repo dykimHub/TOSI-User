@@ -9,4 +9,6 @@ public interface AuthService {
     TokenInfo findTokenInfo(LoginDto loginDto, User user);
 
     String findUserAuthorization(String accessToken);
+
+    void invalidateToken(TokenInfo tokenInfo, String email);
 }

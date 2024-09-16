@@ -17,8 +17,25 @@ public class UserController {
 
     @Operation(summary = "회원가입")
     @PostMapping
-    public ResponseEntity<SuccessResponse> addUser(@RequestBody JoinDto joinDto) {
-        SuccessResponse successResponse = userService.addUser(joinDto);
+    public ResponseEntity<SuccessResponse> join(@RequestBody JoinDto joinDto) {
+        SuccessResponse successResponse = userService.join(joinDto);
+        return ResponseEntity.ok()
+                .body(successResponse);
+    }
+
+    @Operation(summary = "로그인")
+    @PostMapping("/login")
+    public ResponseEntity<TokenInfo> login(@RequestBody LoginDto loginDto) {
+        TokenInfo tokenInfo = userService.login(loginDto);
+        return ResponseEntity.ok()
+                .body(tokenInfo);
+    }
+
+    @Operation(summary = "로그아웃")
+    @GetMapping("/logout")
+    public ResponseEntity<SuccessResponse> logout(@RequestHeader("Authorization") String accessToken,  @RequestHeader("RefreshToken") String refreshToken) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        SuccessResponse successResponse = userService.logout(TokenInfo.of(accessToken, refreshToken), userDto.getEmail());
         return ResponseEntity.ok()
                 .body(successResponse);
     }
@@ -37,14 +54,6 @@ public class UserController {
         SuccessResponse uniqueNickname = userService.findUserNickNameDuplication(nickname);
         return ResponseEntity.ok()
                 .body(uniqueNickname);
-    }
-
-    @Operation(summary = "로그인")
-    @PostMapping("/login")
-    public ResponseEntity<TokenInfo> findUser(@RequestBody LoginDto loginDto) {
-        TokenInfo tokenInfo = userService.findUser(loginDto);
-        return ResponseEntity.ok()
-                .body(tokenInfo);
     }
 
     @Operation(summary = "회원 상세")
@@ -83,15 +92,7 @@ public class UserController {
                 .body(successResponse);
     }
 
-//
-//
-//    // 로그아웃
-//    @GetMapping("/logout")
-//    public ResponseEntity<Void> getLogout(HttpServletRequest request, HttpServletResponse response) {
-//        cookieUtil.deleteCookie(request, response, "access-token");
-//        cookieUtil.deleteCookie(request, response, "refresh-token");
-//        return new ResponseEntity<Void>(HttpStatus.OK);
-//    }
-//
-//
+
+
+
 }

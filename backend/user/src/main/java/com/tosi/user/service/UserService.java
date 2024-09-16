@@ -5,13 +5,15 @@ import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.*;
 
 public interface UserService {
-    SuccessResponse addUser(JoinDto joinDto);
+    SuccessResponse join(JoinDto joinDto);
+
+    TokenInfo login(LoginDto loginDto);
+
+    SuccessResponse logout(TokenInfo tokenInfo, String email);
 
     SuccessResponse findUserEmailDuplication(String email);
 
     SuccessResponse findUserNickNameDuplication(String nickname);
-
-    TokenInfo findUser(LoginDto loginDto);
 
     UserDto findUserDto(String accessToken);
 
@@ -22,4 +24,5 @@ public interface UserService {
     SuccessResponse addChild(Long userId, ChildDto childDto);
 
     SuccessResponse deleteChild(Long userId, Long childId);
+
 }
