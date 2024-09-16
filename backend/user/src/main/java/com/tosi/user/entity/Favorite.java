@@ -1,26 +1,31 @@
 package com.tosi.user.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "favorites")
 @Entity
 public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(updatable = false)
-    private Integer favoriteId;
+    @Column(name = "favorite_id", nullable = false)
+    private Long favoriteId;
 
-//    @Column(nullable = false)
-//    private Integer userId;
-//
-//    @Column
-//    private int taleId;
-//
-//    @Column(insertable = false)
-//    private LocalDateTime regDate;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
+    @Column(name = "tale_id", nullable = false)
+    private Long taleId;
+
+    @Builder
+    public Favorite(Long userId, Long taleId) {
+        this.userId = userId;
+        this.taleId = taleId;
+    }
 }

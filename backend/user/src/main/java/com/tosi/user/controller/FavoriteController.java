@@ -1,31 +1,32 @@
 package com.tosi.user.controller;
 
+import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.user.dto.FavoriteDto;
+import com.tosi.user.dto.UserDto;
+import com.tosi.user.entity.Favorite;
+import com.tosi.user.service.FavoriteService;
+import com.tosi.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
-@RequestMapping("/favorites")
+@RequestMapping("/api/users/favorite")
 @RestController
 public class FavoriteController {
+    private final FavoriteService favoriteService;
+    private final UserService userService;
 
-//    private final FavoriteService favoriteService;
-//    private final TaleDetailService taleDetailService;
-//
-//    @PostMapping
-//    public ResponseEntity<?> postFavorite(HttpServletRequest request, @RequestBody Favorite favorite) {
-//        try {
-//            Integer userId = (Integer) request.getAttribute("userId");
-//            favorite.setUserId(userId);
-//            Favorite savedFavorite = favoriteService.insertFavorite(favorite);
-//            return new ResponseEntity<Favorite>(savedFavorite, HttpStatus.OK);
-//        } catch (IllegalArgumentException e) {
-//            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
-//        } catch (Exception e) {
-//            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
-//        }
-//
-//    }
+    @Operation(summary = "동화 즐겨찾기에 추가")
+    @PostMapping
+    public ResponseEntity<SuccessResponse> addFavorite(@RequestHeader("Authorization") String accessToken, @RequestBody FavoriteDto favoriteDto) {
+        userService.findUserDto(accessToken);
+        SuccessResponse successResponse = favoriteService.addFavorite(favoriteDto);
+        return ResponseEntity.ok()
+                .body(successResponse);
+
+    }
 //
 //    @GetMapping("/{taleId}")
 //    public ResponseEntity<?> getFavorite(HttpServletRequest request, @PathVariable int taleId) {
@@ -49,8 +50,9 @@ public class FavoriteController {
 //        }
 //
 //    }
-//
-//    @GetMapping
+
+
+    //    @GetMapping
 //    public ResponseEntity<?> getFavoritesList(HttpServletRequest request) {
 //        try {
 //            Integer userId = (Integer) request.getAttribute("userId");

@@ -1,16 +1,18 @@
 package com.tosi.user.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Builder
-@Data
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FavoriteDto {
 
-    private Integer favoriteId;
+    private Long favoriteId;
+    private Long userId;
+    private Long taleId;
 
-    private Integer userId;
-
-    //private TaleDto taleDto;
-
+    @Builder
+    public FavoriteDto(Long userId, Long taleId) {
+        this.userId = userId;
+        this.taleId = taleId;
+    }
 }
