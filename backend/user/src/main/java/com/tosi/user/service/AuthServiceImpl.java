@@ -60,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
     public String findUserAuthorization(String accessToken) {
         String email = jwtTokenUtil.getUsername(accessToken.substring(7));
         if (email == null)
-            throw new CustomException(ExceptionCode.INVAILD_TOKEN);
+            throw new CustomException(ExceptionCode.INVALID_TOKEN);
 
         return email;
     }

@@ -2,21 +2,24 @@ package com.tosi.user.service;
 
 import com.tosi.user.common.JWT.TokenInfo;
 import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.LoginDto;
-import com.tosi.user.dto.JoinDto;
-import com.tosi.user.dto.UserDto;
-import com.tosi.user.dto.UserNChildrenDto;
+import com.tosi.user.dto.*;
 
 public interface UserService {
     SuccessResponse addUser(JoinDto joinDto);
 
-    boolean findUserEmailDuplication(String email);
+    SuccessResponse findUserEmailDuplication(String email);
 
-    boolean findUserNickNameDuplication(String nickname);
+    SuccessResponse findUserNickNameDuplication(String nickname);
 
     TokenInfo findUser(LoginDto loginDto);
 
-    UserNChildrenDto findUserChildren(String userId);
-
     UserDto findUserDto(String accessToken);
+
+    UserNChildrenDto findUserNChildren(UserDto userDto);
+
+    SuccessResponse updateUser(UserDto modifyingUserDto);
+
+    SuccessResponse addChild(Long userId, ChildDto childDto);
+
+    SuccessResponse deleteChild(Long userId, Long childId);
 }

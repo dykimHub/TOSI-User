@@ -12,11 +12,15 @@ import com.tosi.user.repository.ChildRepository;
 import com.tosi.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
@@ -35,6 +39,8 @@ public class UserServiceImpl implements UserService {
      */
     @Transactional
     public SuccessResponse addUser(JoinDto joinDto) {
+        findUserEmailDuplication(joinDto.getEmail());
+        findUserNickNameDuplication(joinDto.getNickname());
 
         User user = User.builder()
                 .email(joinDto.getEmail())
@@ -62,22 +68,28 @@ public class UserServiceImpl implements UserService {
      * 데이터베이스에 이메일이 일치하는 회원이 있는지 확인합니다.
      *
      * @param email 예비 회원 이메일
-     * @return users 테이블에 해당 이메일로 가입한 회원이 있으면 true, 아니면 false를 반환
+     * @return users 데이터베이스에 해당 이메일로 가입한 회원이 없으면 SuccessResponse 반환
+     * @throws CustomException 데이터베이스에 해당 이메일로 가입한 회원이 있음
      */
     @Override
-    public boolean findUserEmailDuplication(String email) {
-        return userRepository.existsByEmail(email);
+    public SuccessResponse findUserEmailDuplication(String email) {
+        if (userRepository.existsByEmail(email))
+            throw new CustomException(ExceptionCode.EXISTED_EMAIL);
+        return SuccessResponse.of("사용 가능한 이메일 입니다.");
     }
 
     /**
      * 데이터베이스에 닉네임이 일치하는 회원이 있는지 확인합니다.
      *
      * @param nickname 예비 회원 닉네임
-     * @return 데이터베이스에 해당 닉네임으로 가입한 회원이 있으면 true, 아니면 false를 반환
+     * @return 데이터베이스에 해당 닉네임으로 가입한 회원이 없으면 SuccessResponse 반환
+     * @throws CustomException 데이터베이스에 해당 닉네임으로 가입한 회원이 있음
      */
     @Override
-    public boolean findUserNickNameDuplication(String nickname) {
-        return userRepository.existsByNickname(nickname);
+    public SuccessResponse findUserNickNameDuplication(String nickname) {
+        if (userRepository.existsByNickname(nickname))
+            throw new CustomException(ExceptionCode.EXISTED_NICKNAME);
+        return SuccessResponse.of("사용 가능한 닉네임 입니다.");
     }
 
     /**
@@ -91,31 +103,7 @@ public class UserServiceImpl implements UserService {
     public TokenInfo findUser(LoginDto loginDto) {
         User user = userRepository.findByEmail(loginDto.getEmail())
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
-
         return authService.findTokenInfo(loginDto, user);
-    }
-
-    /**
-     * 이메일로 회원 정보를 조회한 후, 자녀 데이터베이스에서 해당 회원의 자녀 목록을 조회하여 반환합니다.
-     *
-     * @param accessToken 로그인한 회원의 토큰
-     * @return 회원 정보와 회원이 등록한 자녀의 정보가 담긴 UserNChildDto 객체
-     */
-    @Override
-    public UserNChildrenDto findUserChildren(String accessToken) {
-        UserDto userDto = findUserDto(accessToken);
-        List<ChildDto> children = childRepository.findByUserId(userDto.getUserId()).stream()
-                .map(child -> ChildDto.builder()
-                        .childName(child.getChildName())
-                        .childGender(child.getChildGender())
-                        .build())
-                .toList();
-
-        return UserNChildrenDto.builder()
-                .nickname(userDto.getNickname())
-                .bookshelfName(userDto.getBookshelfName())
-                .children(children)
-                .build();
     }
 
     /**
@@ -131,41 +119,43 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
     }
 
-//
-//    @Transactional
-//    // 회원 정보 수정
-//    public void updateUser (UserInfo userInfo) {
-//        Optional<User> optionalUser = userRepository.findById(userInfo.getUserId());
-//
-//        if (optionalUser.isPresent()) {
-//            User user = optionalUser.get();
-//            if(userInfo.getPassword() == null || userInfo.getPassword() == ""){
-//                String password = user.getPassword();
-//                userInfo.setPassword(password);
-//            }
-//            user.update(userInfo);
-//        } else {
-//            // 예외 던지기
-//        }
-//
-//        childRepository.deleteByUserId(userInfo.getUserId());
-//
-//        List<ChildInfo> childrenList = userInfo.getChildrenList();
-//
-//        for (int i = 0; i < childrenList.size(); i++) {
-//            childRepository.save(childrenList.get(i).toEntity(userInfo.getUserId()));
-//        }
-//    }
-//
-//    @Transactional
-//    // 회원 탈퇴
-//    public void deleteUser (int userId) {
-//        refreshTokenRepository.deleteByUserId(userId);
-//        customTaleRepository.deleteByUserId(userId);
-//        favoriteRepository.deleteByUserId(userId);
-//        childRepository.deleteByUserId(userId);
-//        userRepository.deleteById(userId);
-//    }
+    /**
+     * 이메일로 회원 정보를 조회한 후, 자녀 데이터베이스에서 해당 회원의 자녀 목록을 조회하여 반환합니다.
+     *
+     * @param userDto 로그인한 회원의 UserDto 객체
+     * @return 회원 정보와 회원이 등록한 자녀의 정보가 담긴 UserNChildDto 객체
+     */
+    @Cacheable(value = "userNchild", key = "#userDto.userId")
+    @Override
+    public UserNChildrenDto findUserNChildren(UserDto userDto) {
+        List<ChildDto> children = userRepository.findChildrenDtoByUserId(userDto.getUserId())
+                .orElseThrow(() -> new CustomException(ExceptionCode.CHILDREN_NOT_FOUND));
+
+        return UserNChildrenDto.builder()
+                .userDto(userDto)
+                .children(children)
+                .build();
+    }
+
+    /**
+     * 회원의 닉네임 혹은 책장 이름을 수정합니다.
+     *
+     * @param modifyingUserDto 수정할 정보가 담긴 UserDto 객체
+     * @return 수정이 완료되면 SuccessResponse 반환
+     * @throws CustomException 이미 있는 닉네임으로 바꾸려고 하면 예외 처리
+     */
+    @CacheEvict(value = "userNchild", key = "#modifyingUserDto.userId")
+    @Transactional
+    @Override
+    public SuccessResponse updateUser(UserDto modifyingUserDto) {
+        if (userRepository.existsByNickname(modifyingUserDto.getNickname()))
+            throw new CustomException(ExceptionCode.EXISTED_NICKNAME);
+
+        userRepository.modifyUser(modifyingUserDto);
+
+        return SuccessResponse.of("회원 정보가 성공적으로 수정되었습니다.");
+    }
+
 
 //    @CacheEvict(value = CacheKey.USER, key = "#username")
 //    public void logout(TokenInfo tokenDto, String username) {

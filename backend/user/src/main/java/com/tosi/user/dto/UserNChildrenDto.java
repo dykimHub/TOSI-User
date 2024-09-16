@@ -9,14 +9,12 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserNChildrenDto {
 
-    private String nickname;
-    private String bookshelfName;
+    private UserDto userDto;
     private List<ChildDto> children;
 
     @Builder
-    public UserNChildrenDto(Long userId, String nickname, String bookshelfName, List<ChildDto> children) {
-        this.nickname = nickname;
-        this.bookshelfName = bookshelfName;
+    public UserNChildrenDto(UserDto userDto, List<ChildDto> children) {
+        this.userDto = userDto;
         this.children = children;
     }
 }

@@ -1,15 +1,12 @@
 package com.tosi.user.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
-import jakarta.persistence.Column;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.ToString;
 
-import java.time.OffsetDateTime;
-
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserDto {
@@ -19,7 +16,6 @@ public class UserDto {
     private String nickname;
     private String bookshelfName;
 
-    @Builder
     @QueryProjection
     public UserDto(Long userId, String email, String nickname, String bookshelfName) {
         this.userId = userId;
