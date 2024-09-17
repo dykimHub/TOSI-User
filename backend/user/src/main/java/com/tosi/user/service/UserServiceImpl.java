@@ -121,6 +121,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 이메일로 회원 정보를 조회한 후, 자녀 데이터베이스에서 해당 회원의 자녀 목록을 조회하여 반환합니다.
+     * 회원과 회원의 자녀 정보를 캐시에 등록합니다.
      *
      * @param userDto 로그인한 회원의 UserDto 객체
      * @return 회원 정보와 회원이 등록한 자녀의 정보가 담긴 UserNChildDto 객체
@@ -139,6 +140,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 회원의 닉네임 혹은 책장 이름을 수정합니다.
+     * 회원(userId)의 회원 정보를 갱신하기 위해 캐시를 비웁니다.
      *
      * @param modifyingUserDto 수정할 정보가 담긴 UserDto 객체
      * @return 수정이 완료되면 SuccessResponse 반환
@@ -157,10 +159,12 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 회원 번호와 자녀 정보를 기반으로 자녀 데이터를 데이터베이스에 추가합니다.
+     * 회원(userId)의 자녀 목록을 갱신하기 위해 캐시를 비웁니다.
      *
      * @param userId 회원 번호
-     * @param childDto
-     * @return
+     * @param childDto 등록할 자녀의 정보가 담긴 ChildDto 객체
+     * @return 자녀 등록에 성공하면 SuccessResponse를 반환합니다.
      */
     @CacheEvict(value = "userNchild", key = "#userId")
     @Transactional
@@ -177,6 +181,14 @@ public class UserServiceImpl implements UserService {
         return SuccessResponse.of("자녀 목록에 성공적으로 추가되었습니다.");
     }
 
+    /**
+     * 회원이 등록한 자녀를 삭제합니다.
+     * 회원(userId)의 자녀 목록을 갱신하기 위해 캐시를 비웁니다.
+     *
+     * @param userId 회원 번호
+     * @param childId 자녀 번호
+     * @return 자녀가 삭제되면 SuccessResponse 객체 반환
+     */
     @CacheEvict(value = "userNchild", key = "#userId")
     @Transactional
     @Override

@@ -17,7 +17,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     /**
-     * 회원 데이터베이스에서 이메일이 일치하는 회원을 찾고 UserDto 객체로 변환하여 반환합니다.
+     * 회원 데이터베이스에서 이메일이 일치하는 회원을 찾고 Optional로 감싼 UserDto 객체로 변환하여 반환합니다.
      *
      * @param email 로그인한 회원의 이메일
      * @return UserDto 객체
@@ -37,7 +37,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     }
 
     /**
-     * 회원의 자녀 데이터베이스에서 회원 번호가 일치하는 자녀들을 찾아서 ChildDto 객체 리스트로 변환하여 반환합니다.
+     * 회원의 자녀 데이터베이스에서 회원 번호가 일치하는 자녀들을 찾아서 Optional로 감싼 ChildDto 객체 리스트로 변환하여 반환합니다.
      *
      * @param userId 회원 번호
      * @return ChildDto 객체 리스트
