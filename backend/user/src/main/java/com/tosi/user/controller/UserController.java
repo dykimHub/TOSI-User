@@ -3,9 +3,11 @@ package com.tosi.user.controller;
 import com.tosi.user.common.JWT.TokenInfo;
 import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.*;
+import com.tosi.user.service.AuthService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.Token;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class UserController {
     private final UserService userService;
+    private final AuthService authService;
 
     @Operation(summary = "회원가입")
     @PostMapping
@@ -35,9 +38,17 @@ public class UserController {
     @GetMapping("/logout")
     public ResponseEntity<SuccessResponse> logout(@RequestHeader("Authorization") String accessToken,  @RequestHeader("RefreshToken") String refreshToken) {
         UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = userService.logout(TokenInfo.of(accessToken, refreshToken), userDto.getEmail());
+        SuccessResponse successResponse = authService.invalidateToken(TokenInfo.of(accessToken, refreshToken), userDto.getEmail());
         return ResponseEntity.ok()
                 .body(successResponse);
+    }
+
+    @Operation(summary = "리프레시 토큰 재발급")
+    @GetMapping("/reissue")
+    public ResponseEntity<TokenInfo> reissue(@RequestHeader("RefreshToken") String refreshToken) {
+        TokenInfo tokenInfo = authService.reissue(refreshToken);
+        return ResponseEntity.ok()
+                .body(tokenInfo);
     }
 
     @Operation(summary = "이메일 중복 체크")

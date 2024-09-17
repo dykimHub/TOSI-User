@@ -107,19 +107,6 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 로그아웃을 요청한 회원의 토큰을 무효화 시킵니다.
-     *
-     * @param tokenInfo 로그인한 회원의 엑세스 토큰과 리프레시 토큰이 담긴 객체
-     * @param email 로그아웃을 시도한 회원의 이메일
-     * @return 로그아웃에 성공하면 SuccessResponse 객체 반환
-     */
-    @Override
-    public SuccessResponse logout(TokenInfo tokenInfo, String email) {
-        authService.invalidateToken(tokenInfo, email);
-        return SuccessResponse.of("로그아웃 되었습니다.");
-    }
-
-    /**
      * 토큰에서 추출된 회원 이메일을 조회하여 UserDTO 객체로 변환하여 반환합니다.
      *
      * @param accessToken 로그인한 회원의 토큰

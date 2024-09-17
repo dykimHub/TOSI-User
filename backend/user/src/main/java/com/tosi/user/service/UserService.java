@@ -9,8 +9,6 @@ public interface UserService {
 
     TokenInfo login(LoginDto loginDto);
 
-    SuccessResponse logout(TokenInfo tokenInfo, String email);
-
     SuccessResponse findUserEmailDuplication(String email);
 
     SuccessResponse findUserNickNameDuplication(String nickname);

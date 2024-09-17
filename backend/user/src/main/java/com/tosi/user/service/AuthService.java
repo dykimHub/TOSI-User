@@ -1,6 +1,7 @@
 package com.tosi.user.service;
 
 import com.tosi.user.common.JWT.TokenInfo;
+import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.LoginDto;
 import com.tosi.user.entity.User;
 
@@ -10,5 +11,7 @@ public interface AuthService {
 
     String findUserAuthorization(String accessToken);
 
-    void invalidateToken(TokenInfo tokenInfo, String email);
+    SuccessResponse invalidateToken(TokenInfo tokenInfo, String email);
+
+    TokenInfo reissue(String refreshToken);
 }
