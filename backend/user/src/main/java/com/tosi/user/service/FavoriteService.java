@@ -14,4 +14,6 @@ public interface FavoriteService {
     boolean findFavoriteTale(Long userId, Long TaleId);
 
     SuccessResponse deleteFavoriteTale(Long userId, Long taleId);
+
+    TaleDto.TaleDtos findPopularTales();
 }

@@ -63,4 +63,15 @@ public class FavoriteController {
 
     }
 
+    @Operation(summary = "동화 인기순 조회")
+    @GetMapping("/popular")
+    public ResponseEntity<TaleDto.TaleDtos> findPopularTales(
+            @RequestHeader("Authorization") String accessToken) {
+        userService.findUserDto(accessToken);
+        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findPopularTales();
+        return ResponseEntity.ok()
+                .body(favoriteTaleDtos);
+
+    }
+
 }
