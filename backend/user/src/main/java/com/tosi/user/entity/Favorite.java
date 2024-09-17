@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "favorites")
+@Table(name = "favorites", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "tale_id"})
+})
 @Entity
 public class Favorite {
 
