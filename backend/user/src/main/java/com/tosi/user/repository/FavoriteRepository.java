@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
+    @Query("SELECT f.taleId FROM Favorite f WHERE f.userId = :userId")
+    List<Long> findTaleIdsByUserId(Long userId);
+
 //    @Query("SELECT f.favoriteId FROM Favorite f WHERE f.userId=:userId AND f.taleId=:taleId")
 //    int getFavorite(int userId, int taleId);
 //

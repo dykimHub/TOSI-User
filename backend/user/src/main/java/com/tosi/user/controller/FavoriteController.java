@@ -2,8 +2,8 @@ package com.tosi.user.controller;
 
 import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.FavoriteDto;
+import com.tosi.user.dto.TaleDto;
 import com.tosi.user.dto.UserDto;
-import com.tosi.user.entity.Favorite;
 import com.tosi.user.service.FavoriteService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
-@RequestMapping("/api/users/favorite")
+@RequestMapping("/api/users/favorites")
 @RestController
 public class FavoriteController {
     private final FavoriteService favoriteService;
@@ -22,9 +24,19 @@ public class FavoriteController {
     @PostMapping
     public ResponseEntity<SuccessResponse> addFavorite(@RequestHeader("Authorization") String accessToken, @RequestBody FavoriteDto favoriteDto) {
         userService.findUserDto(accessToken);
-        SuccessResponse successResponse = favoriteService.addFavorite(favoriteDto);
+        SuccessResponse successResponse = favoriteService.addFavoriteTale(favoriteDto);
         return ResponseEntity.ok()
                 .body(successResponse);
+
+    }
+
+    @Operation(summary = "동화 즐겨찾기 목록 조회")
+    @GetMapping
+    public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(@RequestHeader("Authorization") String accessToken) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userDto.getUserId());
+        return ResponseEntity.ok()
+                .body(favoriteTaleDtos);
 
     }
 //
