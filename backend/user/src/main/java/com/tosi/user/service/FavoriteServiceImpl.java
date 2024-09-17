@@ -9,10 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -32,7 +32,7 @@ public class FavoriteServiceImpl implements FavoriteService {
      * @param taleId 동화 번호
      * @return 즐겨찾기에 성공하면 SuccessResponse 객체 반환
      */
-    @CacheEvict(value = "favorites", key = "#userId")
+    @CacheEvict(value = "favoriteListCache", key = "#userId")
     @Transactional
     @Override
     public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
@@ -53,24 +53,21 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     /**
      * 해당 회원의 동화 즐겨찾기 목록을 반환합니다.
-     * 동화 즐겨찾기 목록을 캐시에 등록합니다.
+     * 동화 즐겨찾기 목록을 회원-페이지번호로 캐시에 등록합니다.
      *
-     * @param userId 회원 번호
+     * @param userId   회원 번호
+     * @param pageable 페이지 번호, 페이지 크기, 정렬 기준 및 방향을 담고 있는 Pageable 객체
      * @return TaleDto 객체 리스트를 감싼 TaleDtos 객체
      */
-    @Cacheable(value = "favorites", key = "#userId")
+    @Cacheable(value = "favoriteListCache", key = "#userId + '-' + #pageable.pageNumber")
     @Override
-    public TaleDto.TaleDtos findFavoriteTales(Long userId) {
-        // 회원이 즐겨찾기한 동화 번호 목록
-        List<Long> favoriteTaleIds = favoriteRepository.findTaleIdsByUserId(userId);
+    public TaleDto.TaleDtos findFavoriteTales(Long userId, Pageable pageable) {
+        Page<Favorite> favoriteList = favoriteRepository.findByUserId(userId, pageable);
 
-        // 동화 프로젝트 API로 동화 번호를 조회해서 동화 객체를 리스트에 추가
-        List<TaleDto> favoriteTaleDtoList = favoriteTaleIds.stream()
-                .map(f -> restTemplate.getForObject(taleURL + f, TaleDto.class))
-                .toList();
-
-        // TaleDto 객체의 내부 클래스 TaleDtos 생성
-        return new TaleDto.TaleDtos(favoriteTaleDtoList);
+        return new TaleDto.TaleDtos(favoriteList.stream()
+                .map(f -> restTemplate.getForObject(taleURL + f.getTaleId(), TaleDto.class))
+                .toList()
+        );
 
     }
 
@@ -94,7 +91,7 @@ public class FavoriteServiceImpl implements FavoriteService {
      * @param taleId 동화 번호
      * @return 삭제가 완료되면 SuccessResponse 객체를 반환
      */
-    @CacheEvict(value = "favorites", key = "#userId")
+    @CacheEvict(value = "favoriteListCache", key = "#userId")
     @Transactional
     @Override
     public SuccessResponse deleteFavoriteTale(Long userId, Long taleId) {

@@ -7,6 +7,9 @@ import com.tosi.user.service.FavoriteService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +33,11 @@ public class FavoriteController {
 
     @Operation(summary = "동화 즐겨찾기 목록 조회")
     @GetMapping
-    public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(@RequestHeader("Authorization") String accessToken) {
+    public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(
+            @RequestHeader("Authorization") String accessToken,
+            @PageableDefault(size = 9, sort = "regDate", direction = Sort.Direction.DESC) Pageable pageable) {
         UserDto userDto = userService.findUserDto(accessToken);
-        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userDto.getUserId());
+        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userDto.getUserId(), pageable);
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
 

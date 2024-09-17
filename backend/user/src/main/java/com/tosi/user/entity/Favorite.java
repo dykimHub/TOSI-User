@@ -5,6 +5,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.OffsetDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,6 +27,10 @@ public class Favorite {
 
     @Column(name = "tale_id", nullable = false)
     private Long taleId;
+
+    @CreationTimestamp
+    @Column(name ="reg_date", nullable = false)
+    private OffsetDateTime regDate;
 
     @Builder
     public Favorite(Long userId, Long taleId) {

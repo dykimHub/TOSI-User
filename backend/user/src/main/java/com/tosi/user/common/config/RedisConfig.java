@@ -1,4 +1,4 @@
-package com.tosi.tale.common.config;
+package com.tosi.user.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
