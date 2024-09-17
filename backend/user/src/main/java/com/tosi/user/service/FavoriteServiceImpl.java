@@ -1,7 +1,6 @@
 package com.tosi.user.service;
 
 import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.FavoriteDto;
 import com.tosi.user.dto.TaleDto;
 import com.tosi.user.entity.Favorite;
 import com.tosi.user.repository.FavoriteRepository;
@@ -25,19 +24,24 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     /**
      * 회원 아이디와 동화 아이디를 이용해 해당 동화를 즐겨찾기에 추가합니다.
+     * 이미 회원 즐겨찾기 목록에 있는 동화라면 추가하지 않습니다.
      *
-     * @param favoriteDto 즐겨찾기할 회원과 동화 정보가 담긴 FavoriteDto 객체
+     * @param userId 회원 번호
+     * @param taleId 동화 번호
      * @return 즐겨찾기에 성공하면 SuccessResponse 객체 반환
      */
     @Transactional
     @Override
-    public SuccessResponse addFavoriteTale(FavoriteDto favoriteDto) {
+    public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
         Favorite favorite = Favorite.builder()
-                .userId(favoriteDto.getUserId())
-                .taleId(favoriteDto.getTaleId())
+                .userId(userId)
+                .taleId(taleId)
                 .build();
 
-        favoriteRepository.save(favorite);
+        boolean exists = findFavoriteTale(favorite.getUserId(), favorite.getTaleId());
+        if (exists) {
+            return SuccessResponse.of("이미 즐겨찾기된 동화입니다.");
+        }
 
         return SuccessResponse.of("즐겨찾는 동화에 성공적으로 추가되었습니다.");
     }
@@ -55,13 +59,19 @@ public class FavoriteServiceImpl implements FavoriteService {
         // 회원이 즐겨찾기한 동화 번호 목록
         List<Long> favoriteTaleIds = favoriteRepository.findTaleIdsByUserId(userId);
 
-        // 동화 프로젝트에 동화 번호를 조회해서 동화 객체를 리스트에 추가
+        // 동화 프로젝트 API로 동화 번호를 조회해서 동화 객체를 리스트에 추가
         List<TaleDto> favoriteTaleDtoList = favoriteTaleIds.stream()
                 .map(f -> restTemplate.getForObject(taleURL + f, TaleDto.class))
                 .toList();
 
+        // TaleDto 객체의 내부 클래스 TaleDtos 생성
         return new TaleDto.TaleDtos(favoriteTaleDtoList);
 
+    }
+
+    @Override
+    public boolean findFavoriteTale(Long userId, Long taleId) {
+        return favoriteRepository.existsByUserIdAndTaleId(userId, taleId);
     }
 
 //
