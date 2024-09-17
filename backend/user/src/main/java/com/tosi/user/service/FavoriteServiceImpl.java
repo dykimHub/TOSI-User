@@ -7,6 +7,7 @@ import com.tosi.user.repository.FavoriteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,12 +25,14 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     /**
      * 회원 아이디와 동화 아이디를 이용해 해당 동화를 즐겨찾기에 추가합니다.
-     * 이미 회원 즐겨찾기 목록에 있는 동화라면 추가하지 않습니다.
+     * 이미 즐겨찾기 목록에 있는 동화라면 추가하지 않습니다.
+     * 회원(userId)의 동화 즐겨찾기 목록을 갱신하기 위해 캐시를 비웁니다.
      *
      * @param userId 회원 번호
      * @param taleId 동화 번호
      * @return 즐겨찾기에 성공하면 SuccessResponse 객체 반환
      */
+    @CacheEvict(value = "favorites", key = "#userId")
     @Transactional
     @Override
     public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
@@ -42,6 +45,8 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (exists) {
             return SuccessResponse.of("이미 즐겨찾기된 동화입니다.");
         }
+
+        favoriteRepository.save(favorite);
 
         return SuccessResponse.of("즐겨찾는 동화에 성공적으로 추가되었습니다.");
     }
@@ -69,36 +74,31 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     }
 
+    /**
+     * 해당 동화가 이미 즐겨찾기 목록에 있는 동화인지의 여부를 판단하여 결과를 반환합니다.
+     *
+     * @param userId 회원 번호
+     * @param taleId 동화 번호
+     * @return 회원이 즐겨찾는 동화에 이미 있는 동화면 true, 아니면 false 반환
+     */
     @Override
     public boolean findFavoriteTale(Long userId, Long taleId) {
         return favoriteRepository.existsByUserIdAndTaleId(userId, taleId);
     }
 
-//
-//    // 즐겨찾기 삭제
-//    public void deleteFavorite(Integer favoriteId) {
-//        favoriteRepository.deleteById(favoriteId);
-//    }
-//
-//    public Favorite insertFavorite(Favorite favorite) {
-//        if (favorite == null)
-//            throw new EntityNotFoundException();
-//        return favoriteRepository.save(favorite);
-//    }
-//
-//    public int getFavorite(int userId, int taleId) {
-//        return favoriteRepository.getFavorite(userId, taleId);
-//    }
-//
-//    public List<TaleDto> getFavoriteList(int userId) {
-//        List<Favorite> favorites = favoriteRepository.getByUserId(userId);
-//        if (favorites == null || favorites.size() == 0)
-//            return new ArrayList<>();
-//
-//        List<TaleDto> favoriteTales = new ArrayList<>();
-//        for (Favorite favorite : favorites)
-//            favoriteTales.add(taleDetailService.getTaleDetail(favorite.getTaleId()));
-//
-//        return favoriteTales;
-//    }
+    /**
+     * 해당 동화를 즐겨찾기 목록에서 삭제합니다.
+     * 회원(userId)의 동화 즐겨찾기 목록을 갱신하기 위해 캐시를 비웁니다.
+     *
+     * @param userId 회원 번호
+     * @param taleId 동화 번호
+     * @return 삭제가 완료되면 SuccessResponse 객체를 반환
+     */
+    @CacheEvict(value = "favorites", key = "#userId")
+    @Transactional
+    @Override
+    public SuccessResponse deleteFavoriteTale(Long userId, Long taleId) {
+        favoriteRepository.deleteByUserIdAndTaleId(userId, taleId);
+        return SuccessResponse.of("해당 동화가 즐겨찾기에서 성공적으로 삭제되었습니다.");
+    }
 }

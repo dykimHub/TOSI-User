@@ -19,7 +19,8 @@ public class FavoriteController {
 
     @Operation(summary = "동화 즐겨찾기에 추가")
     @PostMapping("/{taleId}")
-    public ResponseEntity<SuccessResponse> addFavorite(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
+    public ResponseEntity<SuccessResponse> addFavoriteTale(
+            @RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
         UserDto userDto = userService.findUserDto(accessToken);
         SuccessResponse successResponse = favoriteService.addFavoriteTale(userDto.getUserId(), taleId);
         return ResponseEntity.ok()
@@ -46,17 +47,15 @@ public class FavoriteController {
                 .body(exists);
 
     }
-//
-//    @DeleteMapping("/{favoriteId}")
-//    public ResponseEntity<?> deleteFavorite(HttpServletRequest request, @PathVariable int favoriteId) {
-//        try {
-//            favoriteService.deleteFavorite(favoriteId);
-//            return new ResponseEntity<Void>(HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//
-//    }
 
+    @Operation(summary = "동화 즐겨찾기에서 삭제")
+    @DeleteMapping("/{taleId}")
+    public ResponseEntity<SuccessResponse> deleteFavoriteTale(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        SuccessResponse successResponse = favoriteService.deleteFavoriteTale(userDto.getUserId(), taleId);
+        return ResponseEntity.ok()
+                .body(successResponse);
+
+    }
 
 }
