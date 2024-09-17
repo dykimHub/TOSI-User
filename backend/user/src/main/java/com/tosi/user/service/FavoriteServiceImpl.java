@@ -36,6 +36,9 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Transactional
     @Override
     public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
+        // 동화의 존재 여부를 API 요청을 통해 확인
+        restTemplate.getForObject(taleURL + taleId, TaleDto.class);
+
         Favorite favorite = Favorite.builder()
                 .userId(userId)
                 .taleId(taleId)
