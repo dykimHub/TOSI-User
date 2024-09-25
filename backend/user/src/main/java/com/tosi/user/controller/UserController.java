@@ -37,8 +37,8 @@ public class UserController {
     @Operation(summary = "로그아웃")
     @GetMapping("/logout")
     public ResponseEntity<SuccessResponse> logout(@RequestHeader("Authorization") String accessToken,  @RequestHeader("RefreshToken") String refreshToken) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = authService.invalidateToken(TokenInfo.of(accessToken, refreshToken), userDto.getEmail());
+        Long userId = userService.findUserId(accessToken);
+        SuccessResponse successResponse = authService.invalidateToken(TokenInfo.of(accessToken, refreshToken), userId.toString());
         return ResponseEntity.ok()
                 .body(successResponse);
     }
@@ -88,8 +88,8 @@ public class UserController {
     @Operation(summary = "자녀 추가")
     @PostMapping("/child")
     public ResponseEntity<SuccessResponse> addChild(@RequestHeader("Authorization") String accessToken, @RequestBody ChildDto childDto) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = userService.addChild(userDto.getUserId(), childDto);
+        Long userId = userService.findUserId(accessToken);
+        SuccessResponse successResponse = userService.addChild(userId, childDto);
         return ResponseEntity.ok()
                 .body(successResponse);
     }
@@ -97,8 +97,8 @@ public class UserController {
     @Operation(summary = "자녀 삭제")
     @DeleteMapping("/{childId}")
     public ResponseEntity<SuccessResponse> deleteChild(@RequestHeader("Authorization") String accessToken, @PathVariable Long childId) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = userService.deleteChild(userDto.getUserId(), childId);
+        Long userId = userService.findUserId(accessToken);
+        SuccessResponse successResponse = userService.deleteChild(userId, childId);
         return ResponseEntity.ok()
                 .body(successResponse);
     }

@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface UserRepositoryCustom {
 
-    Optional<UserDto> findUserDtoByEmail(String email);
+    Optional<UserDto> findUserDtoById(Long userId);
 
-    Optional<List<ChildDto>> findChildrenDtoByUserId(Long userId);
+    Optional<List<ChildDto>> findChildrenDtoById(Long userId);
 
     @Modifying
     Long modifyUser(UserDto userDto);

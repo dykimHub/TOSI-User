@@ -24,8 +24,8 @@ public class FavoriteController {
     @PostMapping("/{taleId}")
     public ResponseEntity<SuccessResponse> addFavoriteTale(
             @RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = favoriteService.addFavoriteTale(userDto.getUserId(), taleId);
+        Long userId = userService.findUserId(accessToken);
+        SuccessResponse successResponse = favoriteService.addFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(successResponse);
 
@@ -36,8 +36,8 @@ public class FavoriteController {
     public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(
             @RequestHeader("Authorization") String accessToken,
             @PageableDefault(size = 9, sort = "regDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userDto.getUserId(), pageable);
+        Long userId = userService.findUserId(accessToken);
+        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userId, pageable);
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
 
@@ -46,8 +46,8 @@ public class FavoriteController {
     @Operation(summary = "동화 즐겨찾기 여부 조회")
     @GetMapping("/{taleId}")
     public ResponseEntity<Boolean> findFavoriteTale(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        boolean exists = favoriteService.findFavoriteTale(userDto.getUserId(), taleId);
+        Long userId = userService.findUserId(accessToken);
+        boolean exists = favoriteService.findFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(exists);
 
@@ -56,8 +56,8 @@ public class FavoriteController {
     @Operation(summary = "동화 즐겨찾기에서 삭제")
     @DeleteMapping("/{taleId}")
     public ResponseEntity<SuccessResponse> deleteFavoriteTale(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = favoriteService.deleteFavoriteTale(userDto.getUserId(), taleId);
+        Long userId = userService.findUserId(accessToken);
+        SuccessResponse successResponse = favoriteService.deleteFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(successResponse);
 
@@ -65,9 +65,7 @@ public class FavoriteController {
 
     @Operation(summary = "동화 인기순 조회")
     @GetMapping("/popular")
-    public ResponseEntity<TaleDto.TaleDtos> findPopularTales(
-            @RequestHeader("Authorization") String accessToken) {
-        userService.findUserDto(accessToken);
+    public ResponseEntity<TaleDto.TaleDtos> findPopularTales() {
         TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findPopularTales();
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
