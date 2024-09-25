@@ -107,15 +107,29 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 토큰에서 추출된 회원 이메일을 조회하여 UserDTO 객체로 변환하여 반환합니다.
+     * 토큰에서 추출한 회원 번호를 Long 타입으로 변환합니다.
+     *
+     * @param accessToken 로그인한 회원의 토큰
+     * @return 토큰을 만들 때 String 타입으로 변환한 회원 번호를 Long 타입으로 변환하여 반환
+     */
+    @Override
+    public Long findUserId(String accessToken) {
+        String userId = authService.findUserAuthorization(accessToken);
+        if(userId == null)
+            throw new CustomException(ExceptionCode.USER_NOT_FOUND);
+        return Long.parseLong(userId);
+    }
+
+    /**
+     * 토큰에서 추출된 회원 번호를 조회하여 UserDTO 객체로 변환하여 반환합니다.
      *
      * @param accessToken 로그인한 회원의 토큰
      * @return UserDto 객체
      */
     @Override
     public UserDto findUserDto(String accessToken) {
-        String email = authService.findUserAuthorization(accessToken);
-        return userRepository.findUserDtoByEmail(email)
+        String userId = authService.findUserAuthorization(accessToken);
+        return userRepository.findUserDtoById(Long.parseLong(userId))
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
     }
 
@@ -129,7 +143,7 @@ public class UserServiceImpl implements UserService {
     @Cacheable(value = "userNchild", key = "#userDto.userId")
     @Override
     public UserNChildrenDto findUserNChildren(UserDto userDto) {
-        List<ChildDto> children = userRepository.findChildrenDtoByUserId(userDto.getUserId())
+        List<ChildDto> children = userRepository.findChildrenDtoById(userDto.getUserId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.CHILDREN_NOT_FOUND));
 
         return UserNChildrenDto.builder()
@@ -162,7 +176,7 @@ public class UserServiceImpl implements UserService {
      * 회원 번호와 자녀 정보를 기반으로 자녀 데이터를 데이터베이스에 추가합니다.
      * 회원(#회원번호)의 자녀 목록을 갱신하기 위해 캐시를 비웁니다.
      *
-     * @param userId 회원 번호
+     * @param userId   회원 번호
      * @param childDto 등록할 자녀의 정보가 담긴 ChildDto 객체
      * @return 자녀 등록에 성공하면 SuccessResponse를 반환합니다.
      */
@@ -185,7 +199,7 @@ public class UserServiceImpl implements UserService {
      * 회원이 등록한 자녀를 삭제합니다.
      * 회원(#회원번호)의 자녀 목록을 갱신하기 위해 캐시를 비웁니다.
      *
-     * @param userId 회원 번호
+     * @param userId  회원 번호
      * @param childId 자녀 번호
      * @return 자녀가 삭제되면 SuccessResponse 객체 반환
      */
@@ -196,5 +210,6 @@ public class UserServiceImpl implements UserService {
         childRepository.deleteById(childId);
         return SuccessResponse.of("해당 자녀가 성공적으로 삭제되었습니다.");
     }
+
 
 }

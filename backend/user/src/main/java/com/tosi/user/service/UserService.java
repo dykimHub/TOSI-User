@@ -13,6 +13,8 @@ public interface UserService {
 
     SuccessResponse findUserNickNameDuplication(String nickname);
 
+    Long findUserId(String accessToken);
+
     UserDto findUserDto(String accessToken);
 
     UserNChildrenDto findUserNChildren(UserDto userDto);
