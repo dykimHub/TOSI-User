@@ -46,28 +46,29 @@ public class AuthServiceImpl implements AuthService {
     public TokenInfo findTokenInfo(LoginDto loginDto, User user) {
         // 비밀번호 일치 검증
         checkPassword(loginDto.getPassword(), user.getPassword());
-        // 엑세스 토큰 생성
-        String accessToken = jwtTokenUtil.generateAccessToken(user.getEmail());
-        // 리프레시 토큰 생성
-        RefreshToken refreshToken = saveRefreshToken(user.getEmail());
+        // 회원 번호로 엑세스 토큰 생성
+        String userId = user.getUserId().toString();
+        String accessToken = jwtTokenUtil.generateAccessToken(userId);
+        // 회원 번호로 리프레시 토큰 생성
+        RefreshToken refreshToken = saveRefreshToken(userId);
 
         return TokenInfo.of(accessToken, refreshToken.getRefreshToken());
     }
 
     /**
-     * JWT 토큰에서 이메일을 추출하여 반환합니다.
+     * JWT 토큰에서 회원 번호을 추출하여 반환합니다.
      *
      * @param accessToken 인증된 사용자의 JWT 토큰
      * @return 토큰에서 추출한 사용자의 이메일
-     * @throws CustomException 토큰이 유효하지 않거나 이메일을 찾을 수 없음
+     * @throws CustomException 토큰이 유효하지 않거나 회원 번호를 찾을 수 없음
      */
     @Override
     public String findUserAuthorization(String accessToken) {
-        String email = jwtTokenUtil.getUsername(accessToken.substring(7));
-        if (email == null)
+        String userId = jwtTokenUtil.getUsername(accessToken.substring(7));
+        if (userId == null)
             throw new CustomException(ExceptionCode.INVALID_TOKEN);
 
-        return email;
+        return userId;
     }
 
     /**
@@ -75,19 +76,19 @@ public class AuthServiceImpl implements AuthService {
      * 토큰의 유효기간이 끝날 때까지 Redis에 보관하여 재사용되지 않도록 합니다.
      *
      * @param tokenInfo 로그아웃 처리할 회원의 Access Token과 Refresh Token 정보
-     * @param email 로그아웃 처리할 회원의 이메일(Redis 캐싱 키)
+     * @param userId 로그아웃 처리할 회원 번호(Redis 캐싱 키)
      * @return 로그아웃 처리가 완료되면 SuccessResponse 반환
      */
     @Override
-    public SuccessResponse invalidateToken(TokenInfo tokenInfo, String email) {
+    public SuccessResponse invalidateToken(TokenInfo tokenInfo, String userId) {
         // 순수한 엑세스 토큰 추출
         String accessToken = resolveToken(tokenInfo.getAccessToken());
         // 토큰의 남은 유효기간 계산
         long remainMilliSeconds = jwtTokenUtil.getRemainMilliSeconds(accessToken);
         // 레디스에서 리프레시토큰 삭제
-        refreshTokenRedisRepository.deleteById(email);
+        refreshTokenRedisRepository.deleteById(userId);
         // 토큰이 남은 유효기간 동안 사용되지 않도록 블랙리스트에 저장
-        logoutAccessTokenRedisRepository.save(LogoutAccessToken.of(accessToken, email, remainMilliSeconds));
+        logoutAccessTokenRedisRepository.save(LogoutAccessToken.of(accessToken, userId, remainMilliSeconds));
 
         return SuccessResponse.of("로그아웃 되었습니다.");
     }
@@ -99,16 +100,16 @@ public class AuthServiceImpl implements AuthService {
      * @return 새로운 액세스 토큰과 기존 리프레시 토큰이 포함된 TokenInfo 객체
      */
     public TokenInfo reissue(String refreshToken) {
-        // 현재 로그인한 사용자의 이메일을 기반으로 레디스에서 저장된 리프레시 토큰 조회
-        String email = getCurrentUsername();
-        RefreshToken redisRefreshToken = refreshTokenRedisRepository.findById(email)
+        // 현재 로그인한 회원의 번호를 기반으로 레디스에서 저장된 리프레시 토큰 조회
+        String userId = getCurrentUsername();
+        RefreshToken redisRefreshToken = refreshTokenRedisRepository.findById(userId)
                 .orElseThrow(NoSuchElementException::new);
 
         // 리프레시 토큰이 레디스에 저장된 토큰과 일치하면 새로운 액세스 토큰을 발급
         if (!refreshToken.equals(redisRefreshToken.getRefreshToken()))
             throw new CustomException(ExceptionCode.INVALID_TOKEN);
 
-        return reissueRefreshToken(refreshToken, email);
+        return reissueRefreshToken(refreshToken, userId);
     }
 
     private String resolveToken(String token) {
