@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long findUserId(String accessToken) {
         String userId = authService.findUserAuthorization(accessToken);
-        if(userId == null)
+        if (userId == null)
             throw new CustomException(ExceptionCode.USER_NOT_FOUND);
         return Long.parseLong(userId);
     }
@@ -156,18 +156,20 @@ public class UserServiceImpl implements UserService {
      * 회원의 닉네임 혹은 책장 이름을 수정합니다.
      * 회원(#회원번호)의 회원 정보를 갱신하기 위해 캐시를 비웁니다.
      *
+     * @param userDto          기존 UserDto 객체
      * @param modifyingUserDto 수정할 정보가 담긴 UserDto 객체
      * @return 수정이 완료되면 SuccessResponse 반환
      * @throws CustomException 이미 있는 닉네임으로 바꾸려고 하면 예외 처리
      */
-    @CacheEvict(value = "userNchild", key = "#modifyingUserDto.userId")
+    @CacheEvict(value = "userNchild", key = "#userDto.userId")
     @Transactional
     @Override
-    public SuccessResponse updateUser(UserDto modifyingUserDto) {
-        if (userRepository.existsByNickname(modifyingUserDto.getNickname()))
+    public SuccessResponse updateUser(UserDto userDto, ModifyingUserDto modifyingUserDto) {
+        if (!userDto.getNickname().equals(modifyingUserDto.getNickname()) // 닉네임이 변경되었는데(기존 닉네임과 다른데)
+                && userRepository.existsByNickname(modifyingUserDto.getNickname())) // 변경된 닉네임이 이미 존재하는 닉네임이라면
             throw new CustomException(ExceptionCode.EXISTED_NICKNAME);
 
-        userRepository.modifyUser(modifyingUserDto);
+        userRepository.modifyUser(userDto.getUserId(), modifyingUserDto);
 
         return SuccessResponse.of("회원 정보가 성공적으로 수정되었습니다.");
     }

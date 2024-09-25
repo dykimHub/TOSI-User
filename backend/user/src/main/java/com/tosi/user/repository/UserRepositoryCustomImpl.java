@@ -1,10 +1,7 @@
 package com.tosi.user.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tosi.user.dto.ChildDto;
-import com.tosi.user.dto.QChildDto;
-import com.tosi.user.dto.QUserDto;
-import com.tosi.user.dto.UserDto;
+import com.tosi.user.dto.*;
 import com.tosi.user.entity.QChild;
 import com.tosi.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
@@ -58,16 +55,17 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     /**
      * 회원 데이터베이스에서 아이디가 일치하는 회원을 찾고 닉네임 혹은 책장 이름을 업데이트 합니다.
      *
+     * @param userId
      * @param modifyingUserDto 수정할 정보가 담긴 UserDto 객체
      * @return 데이터베이스가 성공적으로 수정되면 1L, 수정된 항목이 없으면 0L을 반환
      */
     @Override
-    public Long modifyUser(UserDto modifyingUserDto) {
+    public Long modifyUser(Long userId, ModifyingUserDto modifyingUserDto) {
         QUser qUser = QUser.user;
         return queryFactory.update(qUser)
                 .set(qUser.nickname, modifyingUserDto.getNickname())
                 .set(qUser.bookshelfName, modifyingUserDto.getBookshelfName())
-                .where(qUser.userId.eq(modifyingUserDto.getUserId()))
+                .where(qUser.userId.eq(userId))
                 .execute();
     }
 

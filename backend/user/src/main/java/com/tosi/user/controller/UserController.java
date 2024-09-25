@@ -78,9 +78,9 @@ public class UserController {
 
     @Operation(summary = "회원 정보 수정")
     @PutMapping
-    public ResponseEntity<SuccessResponse> modifyUser(@RequestHeader("Authorization") String accessToken, @RequestBody UserDto modifyingUserDto) {
-        userService.findUserDto(accessToken);
-        SuccessResponse successResponse = userService.updateUser(modifyingUserDto);
+    public ResponseEntity<SuccessResponse> modifyUser(@RequestHeader("Authorization") String accessToken, @RequestBody ModifyingUserDto modifyingUserDto) {
+        UserDto userDto = userService.findUserDto(accessToken);
+        SuccessResponse successResponse = userService.updateUser(userDto, modifyingUserDto);
         return ResponseEntity.ok()
                 .body(successResponse);
     }

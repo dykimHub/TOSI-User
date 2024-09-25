@@ -19,7 +19,7 @@ public interface UserService {
 
     UserNChildrenDto findUserNChildren(UserDto userDto);
 
-    SuccessResponse updateUser(UserDto modifyingUserDto);
+    SuccessResponse updateUser(UserDto userDto, ModifyingUserDto modifyingUserDto);
 
     SuccessResponse addChild(Long userId, ChildDto childDto);
 

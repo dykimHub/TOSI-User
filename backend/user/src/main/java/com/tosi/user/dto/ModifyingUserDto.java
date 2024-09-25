@@ -3,12 +3,11 @@ package com.tosi.user.dto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoginDto {
+public class ModifyingUserDto {
 
-    private String email;
-    private String password;
+    private String nickname;
+    private String bookshelfName;
 }

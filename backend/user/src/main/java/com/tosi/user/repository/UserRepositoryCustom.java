@@ -1,6 +1,7 @@
 package com.tosi.user.repository;
 
 import com.tosi.user.dto.ChildDto;
+import com.tosi.user.dto.ModifyingUserDto;
 import com.tosi.user.dto.UserDto;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -14,5 +15,5 @@ public interface UserRepositoryCustom {
     Optional<List<ChildDto>> findChildrenDtoById(Long userId);
 
     @Modifying
-    Long modifyUser(UserDto userDto);
+    Long modifyUser(Long userId, ModifyingUserDto modifyingUserDto);
 }
