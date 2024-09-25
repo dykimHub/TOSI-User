@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     /**
      * UserDetailServie 인터페이스를 구현한 클래스
      * loadUserByUsername 메서드를 오버라이드하여 UserDetail 대신 UserDetail을 구현한 CustomUserDetail 객체를 반환
-     * 레디스에 username(이 프로젝트에서는 이메일을 사용)을 키로 CustomUserDetails 객체를 캐싱함
+     * 레디스에 username(이 프로젝트에서는 회원번호를 문자열로 변환한 값)을 키로 CustomUserDetails 객체를 캐싱함
      */
 
     private final UserRepository userRepository;
@@ -32,11 +32,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Cacheable(value = CacheKey.USER, key = "#username", unless = "#result == null")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username)
+        Long userId = Long.parseLong(username);
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         return CustomUserDetails.builder()
-                .username(user.getEmail())
+                .username(user.getUserId().toString())
                 .password(user.getPassword())
                 //.authorities(Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name())))
                 .build();

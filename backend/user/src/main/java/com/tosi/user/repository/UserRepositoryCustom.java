@@ -1,6 +1,7 @@
 package com.tosi.user.repository;
 
 import com.tosi.user.dto.ChildDto;
+import com.tosi.user.dto.ModifyingUserDto;
 import com.tosi.user.dto.UserDto;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -9,10 +10,10 @@ import java.util.Optional;
 
 public interface UserRepositoryCustom {
 
-    Optional<UserDto> findUserDtoByEmail(String email);
+    Optional<UserDto> findUserDtoById(Long userId);
 
-    Optional<List<ChildDto>> findChildrenDtoByUserId(Long userId);
+    Optional<List<ChildDto>> findChildrenDtoById(Long userId);
 
     @Modifying
-    Long modifyUser(UserDto userDto);
+    Long modifyUser(Long userId, ModifyingUserDto modifyingUserDto);
 }

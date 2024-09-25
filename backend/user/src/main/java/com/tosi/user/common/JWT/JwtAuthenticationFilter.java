@@ -34,12 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = resolveToken(request);
         if (accessToken != null) {
             checkLogout(accessToken);
-            String email = jwtTokenUtil.getUsername(accessToken);
-            if (email != null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                //log.info("캐싱된 회원:{}", userDetails);
-                equalsUsernameFromTokenAndUserDetails(userDetails.getUsername(), email);
-                validateAccessToken(accessToken);
+            validateAccessToken(accessToken);
+            String userId = jwtTokenUtil.getUsername(accessToken);
+            if (userId != null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+                // 토큰에서 찾은 userId와 DB에서 userId로 찾은 User 객체의 userId가 동일한지 확인
+                equalsUsernameFromTokenAndUserDetails(userDetails.getUsername(), userId);
                 processSecurity(request, userDetails);
             }
         }
