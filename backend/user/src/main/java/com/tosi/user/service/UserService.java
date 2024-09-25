@@ -9,17 +9,11 @@ public interface UserService {
 
     TokenInfo login(LoginDto loginDto);
 
-    SuccessResponse findUserEmailDuplication(String email);
+    UserDto findUserDto(Long userId);
 
-    SuccessResponse findUserNickNameDuplication(String nickname);
+    UserNChildrenDto findUserNChildren(Long userId);
 
-    Long findUserId(String accessToken);
-
-    UserDto findUserDto(String accessToken);
-
-    UserNChildrenDto findUserNChildren(UserDto userDto);
-
-    SuccessResponse updateUser(UserDto userDto, ModifyingUserDto modifyingUserDto);
+    SuccessResponse updateUser(Long userId, ModifyingUserDto modifyingUserDto);
 
     SuccessResponse addChild(Long userId, ChildDto childDto);
 

@@ -2,9 +2,8 @@ package com.tosi.user.controller;
 
 import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.TaleDto;
-import com.tosi.user.dto.UserDto;
+import com.tosi.user.service.AuthService;
 import com.tosi.user.service.FavoriteService;
-import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -18,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class FavoriteController {
     private final FavoriteService favoriteService;
-    private final UserService userService;
+    private final AuthService authService;
 
     @Operation(summary = "동화 즐겨찾기에 추가")
     @PostMapping("/{taleId}")
     public ResponseEntity<SuccessResponse> addFavoriteTale(
             @RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = favoriteService.addFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(successResponse);
@@ -36,7 +35,7 @@ public class FavoriteController {
     public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(
             @RequestHeader("Authorization") String accessToken,
             @PageableDefault(size = 9, sort = "regDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userId, pageable);
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
@@ -46,7 +45,7 @@ public class FavoriteController {
     @Operation(summary = "동화 즐겨찾기 여부 조회")
     @GetMapping("/{taleId}")
     public ResponseEntity<Boolean> findFavoriteTale(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         boolean exists = favoriteService.findFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(exists);
@@ -56,7 +55,7 @@ public class FavoriteController {
     @Operation(summary = "동화 즐겨찾기에서 삭제")
     @DeleteMapping("/{taleId}")
     public ResponseEntity<SuccessResponse> deleteFavoriteTale(@RequestHeader("Authorization") String accessToken, @PathVariable Long taleId) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = favoriteService.deleteFavoriteTale(userId, taleId);
         return ResponseEntity.ok()
                 .body(successResponse);
