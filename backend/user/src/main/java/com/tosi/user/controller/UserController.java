@@ -7,7 +7,6 @@ import com.tosi.user.service.AuthService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.antlr.v4.runtime.Token;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +35,8 @@ public class UserController {
 
     @Operation(summary = "로그아웃")
     @GetMapping("/logout")
-    public ResponseEntity<SuccessResponse> logout(@RequestHeader("Authorization") String accessToken,  @RequestHeader("RefreshToken") String refreshToken) {
-        Long userId = userService.findUserId(accessToken);
+    public ResponseEntity<SuccessResponse> logout(@RequestHeader("Authorization") String accessToken, @RequestHeader("RefreshToken") String refreshToken) {
+        Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = authService.invalidateToken(TokenInfo.of(accessToken, refreshToken), userId.toString());
         return ResponseEntity.ok()
                 .body(successResponse);
@@ -51,27 +50,19 @@ public class UserController {
                 .body(tokenInfo);
     }
 
-    @Operation(summary = "이메일 중복 체크")
-    @GetMapping("/emaildup")
-    public ResponseEntity<SuccessResponse> findUserEmailDuplication(@RequestParam String email) {
-        SuccessResponse uniqueEmail = userService.findUserEmailDuplication(email);
+    @Operation(summary = "JWT 토큰 인증")
+    @GetMapping("/auth")
+    public ResponseEntity<Long> findUserAuthorization(@RequestHeader("Authorization") String accessToken) {
+        Long userId = authService.findUserAuthorization(accessToken);
         return ResponseEntity.ok()
-                .body(uniqueEmail);
+                .body(userId);
     }
 
-    @Operation(summary = "닉네임 중복 체크")
-    @GetMapping("/nickdup")
-    public ResponseEntity<SuccessResponse> findUserNicknameDuplication(@RequestParam String nickname) {
-        SuccessResponse uniqueNickname = userService.findUserNickNameDuplication(nickname);
-        return ResponseEntity.ok()
-                .body(uniqueNickname);
-    }
-
-    @Operation(summary = "회원 상세")
+    @Operation(summary = "회원 정보 상세(자녀 포함)")
     @GetMapping
     public ResponseEntity<UserNChildrenDto> findUserNChildren(@RequestHeader("Authorization") String accessToken) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        UserNChildrenDto userNChildrenDto = userService.findUserNChildren(userDto);
+        Long userId = authService.findUserAuthorization(accessToken);
+        UserNChildrenDto userNChildrenDto = userService.findUserNChildren(userId);
         return ResponseEntity.ok()
                 .body(userNChildrenDto);
     }
@@ -79,31 +70,29 @@ public class UserController {
     @Operation(summary = "회원 정보 수정")
     @PutMapping
     public ResponseEntity<SuccessResponse> modifyUser(@RequestHeader("Authorization") String accessToken, @RequestBody ModifyingUserDto modifyingUserDto) {
-        UserDto userDto = userService.findUserDto(accessToken);
-        SuccessResponse successResponse = userService.updateUser(userDto, modifyingUserDto);
+        Long userId = authService.findUserAuthorization(accessToken);
+        SuccessResponse successResponse = userService.updateUser(userId, modifyingUserDto);
         return ResponseEntity.ok()
                 .body(successResponse);
     }
 
-    @Operation(summary = "자녀 추가")
+    @Operation(summary = "회원 자녀 추가")
     @PostMapping("/child")
     public ResponseEntity<SuccessResponse> addChild(@RequestHeader("Authorization") String accessToken, @RequestBody ChildDto childDto) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = userService.addChild(userId, childDto);
         return ResponseEntity.ok()
                 .body(successResponse);
     }
 
-    @Operation(summary = "자녀 삭제")
-    @DeleteMapping("/{childId}")
+    @Operation(summary = "회원 자녀 삭제")
+    @DeleteMapping("/child/{childId}")
     public ResponseEntity<SuccessResponse> deleteChild(@RequestHeader("Authorization") String accessToken, @PathVariable Long childId) {
-        Long userId = userService.findUserId(accessToken);
+        Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = userService.deleteChild(userId, childId);
         return ResponseEntity.ok()
                 .body(successResponse);
     }
-
-
 
 
 }

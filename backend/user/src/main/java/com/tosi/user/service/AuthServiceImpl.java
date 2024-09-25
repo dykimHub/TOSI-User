@@ -14,7 +14,6 @@ import com.tosi.user.dto.LoginDto;
 import com.tosi.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -56,19 +55,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * JWT 토큰에서 회원 번호을 추출하여 반환합니다.
+     * JWT 토큰에서 회원 번호을 추출합니다.
+     * JWT 토큰을 만들 때 String 타입으로 변환한 회원 번호를 Long 타입으로 변환하여 반환합니다.
      *
      * @param accessToken 인증된 사용자의 JWT 토큰
-     * @return 토큰에서 추출한 사용자의 이메일
+     * @return 토큰에서 추출한 사용자의 회원 번호
      * @throws CustomException 토큰이 유효하지 않거나 회원 번호를 찾을 수 없음
      */
     @Override
-    public String findUserAuthorization(String accessToken) {
+    public Long findUserAuthorization(String accessToken) {
         String userId = jwtTokenUtil.getUsername(accessToken.substring(7));
         if (userId == null)
             throw new CustomException(ExceptionCode.INVALID_TOKEN);
 
-        return userId;
+        return Long.parseLong(userId);
     }
 
     /**

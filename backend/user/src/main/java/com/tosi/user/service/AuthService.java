@@ -9,7 +9,7 @@ public interface AuthService {
 
     TokenInfo findTokenInfo(LoginDto loginDto, User user);
 
-    String findUserAuthorization(String accessToken);
+    Long findUserAuthorization(String accessToken);
 
     SuccessResponse invalidateToken(TokenInfo tokenInfo, String email);
 
