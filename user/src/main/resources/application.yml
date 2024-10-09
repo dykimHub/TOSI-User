@@ -3,7 +3,7 @@ spring:
     name: user
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_URL}:3306/user?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://${MYSQL_URL}/user?serverTimezone=UTC&characterEncoding=UTF-8
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
   jpa:

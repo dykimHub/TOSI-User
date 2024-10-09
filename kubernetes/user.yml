@@ -1,21 +1,22 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: tosi-user-service
+  name: tosi-user-svc
 spec:
   selector:
     app: tosi
     tier: backend
   ports:
-    - port: 80
+    - port: 80 # 80으로 연결하면 http 기본 포트이기 때문에 포트 명시 필요없음
       targetPort: 8080
-  type: LoadBalancer
+  type: LoadBalancer # 임시로 외부에 노출
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tosi-user-deployment
+  name: tosi-user-dep
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: tosi
@@ -26,7 +27,16 @@ spec:
         app: tosi
         tier: backend
     spec:
-      replicas: 2
       containers:
         - name: tosi-be-user
-          image: dyckerkim/tosi-be-user:latest
+          image: dyckerkim/tosi-be-user:latest # 재시작하면 최신 이미지 pull
+          envFrom:
+            - secretRef: # mysql, jwt 인증
+                name: tosi-user-scrt
+          env:
+            - name: MYSQL_URL
+              value: tosi-db-user-svc.default
+            - name: REDIS_URL
+              value:
+            - name: TALE_URL
+              value:
