@@ -16,7 +16,7 @@ kind: Deployment
 metadata:
   name: tosi-db-user-dep
 spec:
-  replicas: 1 # 데이터베이스는 replica로 복제할 수 없음
+  replicas: 1 # 데이터베이스는 replica로 복제 불가
   selector:
     matchLabels:
       app: tosi

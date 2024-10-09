@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tosi-cc-svc
+spec:
+  selector:
+    app: tosi
+    tier: cache
+  ports:
+    - port: 6379 # redis 포트와 동일해야 함
+      targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tosi-cc-dep
+spec:
+  replicas: 1 # 캐시는 replica로 복제 불가
+  selector:
+    matchLabels:
+      app: tosi
+      tier: cache
+  template:
+    metadata:
+      labels:
+        app: tosi
+        tier: cache
+    spec:
+      containers:
+        - name: tosi-cache
+          image: redis:6.2

@@ -37,6 +37,6 @@ spec:
             - name: MYSQL_URL
               value: tosi-db-user-svc.default
             - name: REDIS_URL
-              value:
+              value: tosi-cc-svc.default
             - name: TALE_URL
               value:
