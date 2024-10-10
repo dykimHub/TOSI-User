@@ -38,6 +38,8 @@ spec:
               subPath: my.cnf # 이미 존재하는 my.cnf를 내가 정의한 my.cnf로 마운트
             - name: user-db-config
               mountPath: /docker-entrypoint-initdb.d
+            - name: user-vol
+              mountPath: /var/lib/mysql
           envFrom:
             - secretRef: # mysql 인증정보
                 name: tosi-db-scrt
@@ -49,3 +51,6 @@ spec:
         - name: user-db-config
           configMap:
             name: user-db-config
+        - name: user-vol
+          persistentVolumeClaim:
+            claimName: user-pvc
