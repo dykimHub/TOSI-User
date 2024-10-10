@@ -36,8 +36,6 @@ logging:
     org.springframework.data.redis.cache: DEBUG
 jwt:
   secret: ${JWT_SECRET}
-server:
-  port: 8080
 service:
   tale:
     url: ${TALE_URL}

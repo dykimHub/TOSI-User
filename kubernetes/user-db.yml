@@ -30,14 +30,22 @@ spec:
       containers:
         - name: tosi-db-user
           image: mysql:8.4
+          # configmap에 정의해둔 init.sql 실행
+          # kubectl create configmap tosi-db-user-configmap --from-file=init.sql
           volumeMounts:
-            - name: tosi-db-user-vol # configmap에 정의해둔 init.sql 실행
+            - name: mysql-config # 한글 인코딩 설정
+              mountPath: /etc/mysql/conf.d/my.cnf
+              subPath: my.cnf # 이미 존재하는 my.cnf를 내가 정의한 my.cnf로 마운트
+            - name: user-db-config
               mountPath: /docker-entrypoint-initdb.d
           envFrom:
             - secretRef: # mysql 인증정보
-                name: tosi-db-user-scrt
+                name: tosi-db-scrt
 
       volumes:
-        - name: tosi-db-user-vol
+        - name: mysql-config
           configMap:
-            name: tosi-db-user-configmap
+            name: mysql-config
+        - name: user-db-config
+          configMap:
+            name: user-db-config

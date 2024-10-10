@@ -39,4 +39,4 @@ spec:
             - name: REDIS_URL
               value: tosi-cc-svc.default
             - name: TALE_URL
-              value:
+              value: http://tosi-tale-svc.default/api/tales
