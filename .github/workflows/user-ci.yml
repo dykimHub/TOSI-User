@@ -33,8 +33,6 @@ jobs:
         env:
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           MYSQL_URL: 127.0.0.1
           REDIS_URL: localhost
           TALE_URL: http://localhost:8080/api/tales
