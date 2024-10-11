@@ -68,7 +68,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         Page<Long> favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable);
 
         return new TaleDto.TaleDtos(favoriteTaleIds.stream()
-                .map(f -> restTemplate.getForObject(taleURL + f, TaleDto.class))
+                .map(f -> restTemplate.getForObject(taleURL + "/" + f, TaleDto.class))
                 .toList()
         );
 
@@ -112,7 +112,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public TaleDto.TaleDtos findPopularTales() {
         return new TaleDto.TaleDtos(favoriteRepository.findPopularTales().stream()
-                .map(f -> restTemplate.getForObject(taleURL + f, TaleDto.class))
+                .map(f -> restTemplate.getForObject(taleURL + "/" + f, TaleDto.class))
                 .toList()
         );
     }
