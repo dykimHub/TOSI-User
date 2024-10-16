@@ -39,3 +39,6 @@ jwt:
 service:
   tale:
     url: ${TALE_URL}
+springdoc:
+  api-docs:
+    path: /docs/users/v3/api-docs
