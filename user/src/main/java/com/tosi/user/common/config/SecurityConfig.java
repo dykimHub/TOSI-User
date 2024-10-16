@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 //.requestMatchers("/api/users/check/").permitAll()
                                 .requestMatchers("/api/users/**").permitAll()
                                 //.requestMatchers("/api/member/login").permitAll()
-                                .requestMatchers("/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                                .requestMatchers("/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**", "/docs/**").permitAll()
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
