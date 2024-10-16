@@ -6,6 +6,7 @@ import com.tosi.user.dto.*;
 import com.tosi.user.service.AuthService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,13 @@ public class UserController {
     private final AuthService authService;
 
     @Operation(summary = "회원가입")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = ExampleObject.join
+                    )
+            )
+    )
     @PostMapping
     public ResponseEntity<SuccessResponse> join(@RequestBody JoinDto joinDto) {
         SuccessResponse successResponse = userService.join(joinDto);
@@ -26,6 +34,13 @@ public class UserController {
     }
 
     @Operation(summary = "로그인")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = ExampleObject.login
+                    )
+            )
+    )
     @PostMapping("/login")
     public ResponseEntity<TokenInfo> login(@RequestBody LoginDto loginDto) {
         TokenInfo tokenInfo = userService.login(loginDto);
@@ -77,6 +92,13 @@ public class UserController {
     }
 
     @Operation(summary = "회원 자녀 추가")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = ExampleObject.child
+                    )
+            )
+    )
     @PostMapping("/child")
     public ResponseEntity<SuccessResponse> addChild(@RequestHeader("Authorization") String accessToken, @RequestBody ChildDto childDto) {
         Long userId = authService.findUserAuthorization(accessToken);
