@@ -83,6 +83,13 @@ public class UserController {
     }
 
     @Operation(summary = "회원 정보 수정")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = ExampleObject.modify
+                    )
+            )
+    )
     @PutMapping
     public ResponseEntity<SuccessResponse> modifyUser(@RequestHeader("Authorization") String accessToken, @RequestBody ModifyingUserDto modifyingUserDto) {
         Long userId = authService.findUserAuthorization(accessToken);

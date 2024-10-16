@@ -6,7 +6,7 @@ public class ExampleObject {
               "email": "test@test.com",
               "password": "test",
               "nickname": "test",
-              "bookshelfName": "test",
+              "bookshelfName": "testshelf",
               "children": [
                 {
                   "childId": 0,
@@ -29,6 +29,13 @@ public class ExampleObject {
               "childId": 0,
               "childName": "영지",
               "childGender": 1
+            }
+            """;
+
+    public static final String modify = """
+            {
+              "nickname": "tosi",
+              "bookshelfName": "tosishelf"
             }
             """;
 
