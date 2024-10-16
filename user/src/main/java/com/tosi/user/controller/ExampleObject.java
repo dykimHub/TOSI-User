@@ -7,6 +7,7 @@ public class ExampleObject {
               "password": "test",
               "nickname": "test",
               "bookshelfName": "testshelf",
+              "bookshelfName": "test",
               "children": [
                 {
                   "childId": 0,
