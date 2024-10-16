@@ -5,9 +5,8 @@ public class ExampleObject {
             {
               "email": "test@test.com",
               "password": "test",
-              "nickname": "test",
-              "bookshelfName": "testshelf",
-              "bookshelfName": "test",
+              "nickname": "tosi",
+              "bookshelfName": "tosishelf",
               "children": [
                 {
                   "childId": 0,
