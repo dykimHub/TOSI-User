@@ -4,10 +4,10 @@ import com.tosi.user.common.exception.SuccessResponse;
 import com.tosi.user.dto.TaleDto;
 import com.tosi.user.entity.Favorite;
 import com.tosi.user.repository.FavoriteRepository;
+import com.tosi.user.repository.TaleDtoRedisRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +17,10 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 @Service
 public class FavoriteServiceImpl implements FavoriteService {
+
+    private static final String TALE_CACHE_PREFIX = "taleCache::";
     private final FavoriteRepository favoriteRepository;
+    private final TaleDtoRedisRepository taleDtoRedisRepository;
     private final RestTemplate restTemplate;
 
     @Value("${service.tale.url}")
@@ -64,7 +67,8 @@ public class FavoriteServiceImpl implements FavoriteService {
         Page<Long> favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable);
 
         return new TaleDto.TaleDtos(favoriteTaleIds.stream()
-                .map(f -> restTemplate.getForObject(taleURL + "/" + f, TaleDto.class))
+                .map(f -> taleDtoRedisRepository.findById(TALE_CACHE_PREFIX + f)
+                        .orElse(restTemplate.getForObject(taleURL + "/" + f, TaleDto.class)))
                 .toList()
         );
 
@@ -106,7 +110,8 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public TaleDto.TaleDtos findPopularTales() {
         return new TaleDto.TaleDtos(favoriteRepository.findPopularTales().stream()
-                .map(f -> restTemplate.getForObject(taleURL + "/" + f, TaleDto.class))
+                .map(f -> taleDtoRedisRepository.findById(TALE_CACHE_PREFIX + f)
+                        .orElse(restTemplate.getForObject(taleURL + "/" + f, TaleDto.class)))
                 .toList()
         );
     }
