@@ -1,4 +1,4 @@
-# :rabbit: TOSI-Tale
+# :family: TOSI-Tale
 
 **TOSI 서비스**에서 회원과 관련된 기능을 **회원 서비스**로 분리한 프로젝트 입니다.  
 [TOSI 프로젝트](https://github.com/dykimHub/TOSI)에서 전체 구조를 확인하실 수 있습니다.
@@ -8,7 +8,7 @@
 - **기간**: 2024.09.14 ~
 
 회원 서비스를 분리하면서 전반적인 코드 재사용성과 로직을 개선하였습니다.  
-QueryDSL과 DTO Projection을 활용하여 조회 성능을 개선하였습니다.  
+QueryDSL 및 DTO Projection, 캐싱을 추가하여 조회 성능을 개선하였습니다.  
 쿠버네티스를 도입하여 오케스트레이션을 개선하였습니다.
 
 ## :computer: 기술 스택
@@ -34,9 +34,9 @@ QueryDSL과 DTO Projection을 활용하여 조회 성능을 개선하였습니�
 
 - **회원 API 문서 주소**: 🔗 [https://www.tosi.world/swagger-ui/index.html?urls.primaryName=%ED%9A%8C%EC%9B%90](https://www.tosi.world/swagger-ui/index.html?urls.primaryName=%ED%9A%8C%EC%9B%90)
 
-#### 🔐 인증이 필요한 API 사용 방법
+#### 🔐 API 사용 방법
 
-일부 API는 사용 전에 사용자 인증이 필요합니다. 먼저 **Access Token**을 획득하셔야 합니다.
+모든 API는 **Access Token**을 획득하신 후 사용할 수 있습니다.
 
 1. **회원 API 문서**에 접속하여 **로그인 API**를 실행합니다:
 
@@ -48,4 +48,5 @@ QueryDSL과 DTO Projection을 활용하여 조회 성능을 개선하였습니�
    }
    ```
 3. 우측 상단 Authorize 버튼을 클릭하고 발급받은 토큰을 입력한 후 Authorize 버튼을 클릭합니다.
-4. Authorization Header를 필요로 하는 API에는 `Bearer {발급받은 토큰}`을 한번 더 입력합니다.
+4. Try it out 버튼을 클릭하고 요청 변수를 입력한 후 Execute 버튼을 클릭합니다.  
+   4-1. Authorization Header를 필요로 하는 API에는 `Bearer {발급받은 토큰}`을 한번 더 입력합니다.
