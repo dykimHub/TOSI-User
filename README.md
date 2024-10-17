@@ -1,4 +1,4 @@
-# :family: TOSI-Tale
+# :family: TOSI-User
 
 **TOSI 서비스**에서 회원과 관련된 기능을 **회원 서비스**로 분리한 프로젝트 입니다.  
 [TOSI 프로젝트](https://github.com/dykimHub/TOSI)에서 전체 구조를 확인하실 수 있습니다.
