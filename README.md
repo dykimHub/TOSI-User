@@ -34,9 +34,9 @@ QueryDSL 및 DTO Projection, 캐싱을 추가하여 조회 성능을 개선하�
 
 - **회원 API 문서 주소**: 🔗 [https://www.tosi.world/swagger-ui/index.html?urls.primaryName=%ED%9A%8C%EC%9B%90](https://www.tosi.world/swagger-ui/index.html?urls.primaryName=%ED%9A%8C%EC%9B%90)
 
-#### 🔐 API 사용 방법
+#### 🔐 사용자 인증이 필요한 API 사용 방법
 
-모든 API는 **Access Token**을 획득하신 후 사용할 수 있습니다.
+일부 API는 인증 헤더가 필요합니다. 먼저 **Access Token**을 획득하셔야 합니다.
 
 1. **회원 API 문서**에 접속하여 **로그인 API**를 실행합니다:
 
@@ -47,6 +47,6 @@ QueryDSL 및 DTO Projection, 캐싱을 추가하여 조회 성능을 개선하�
      "password": "test"
    }
    ```
-3. 우측 상단 Authorize 버튼을 클릭하고 발급받은 토큰을 입력한 후 Authorize 버튼을 클릭합니다.
-4. Try it out 버튼을 클릭하고 요청 변수를 입력한 후 Execute 버튼을 클릭합니다.  
-   4-1. Authorization Header를 필요로 하는 API에는 `Bearer {발급받은 토큰}`을 한번 더 입력합니다.
+3. 테스트할 API의 우측 좌물쇠를 클릭한 후 발급받은 토큰을 입력하고 Authorize 버튼을 클릭합니다.
+
+4. Try it out 버튼을 클릭하고 Authorization Header 칸에 `Bearer {발급받은 토큰}`을 한번 더 입력한 후 Execute 버튼을 클릭합니다.
