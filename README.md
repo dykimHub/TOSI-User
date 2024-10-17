@@ -47,5 +47,5 @@ QueryDSL과 DTO Projection을 활용하여 조회 성능을 개선하였습니�
      "password": "test"
    }
    ```
-3. 우측 상단 Authorize 버튼을 클릭하고 발급받은 토큰을 입력한 후 Authorize 버틑을 클릭합니다.
+3. 우측 상단 Authorize 버튼을 클릭하고 발급받은 토큰을 입력한 후 Authorize 버튼을 클릭합니다.
 4. Authorization Header를 필요로 하는 API에는 `Bearer {발급받은 토큰}`을 한번 더 입력합니다.
