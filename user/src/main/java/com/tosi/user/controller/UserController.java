@@ -6,6 +6,7 @@ import com.tosi.user.dto.*;
 import com.tosi.user.service.AuthService;
 import com.tosi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -116,7 +117,7 @@ public class UserController {
 
     @Operation(summary = "회원 자녀 삭제")
     @DeleteMapping("/child/{childId}")
-    public ResponseEntity<SuccessResponse> deleteChild(@RequestHeader("Authorization") String accessToken, @PathVariable Long childId) {
+    public ResponseEntity<SuccessResponse> deleteChild(@RequestHeader("Authorization") String accessToken, @Parameter(example = "1") @PathVariable Long childId) {
         Long userId = authService.findUserAuthorization(accessToken);
         SuccessResponse successResponse = userService.deleteChild(userId, childId);
         return ResponseEntity.ok()
