@@ -58,7 +58,8 @@ jobs:
           sleep 120
           kubectl rollout status deployment/tosi-user-dep --timeout=20s
 
-      # 배포 실패 시 이전 버전의 이미지로 롤백
+      # 안정적으로 배포됐던 이미지 중 가장 최신 버전을 latest 태그에 저장하는 것이 보장될 때
+      # 배포 실패 시 latest 태그 이미지로 재지정
       - name: Rollback
         if: failure()
-        run: kubectl rollout undo deployment/tosi-user-dep
+        run: kubectl set image deployment/tosi-user-dep tosi-be-user=${{ secrets.DOCKER_REPO }}/tosi-be-user:latest
