@@ -34,9 +34,26 @@ spec:
             - secretRef: # mysql, jwt 인증
                 name: tosi-user-scrt
           env:
-            - name: MYSQL_URL
-              value: tosi-db-user-svc.default
+            # - name: MYSQL_URL
+            #   value: tosi-db-user-svc.default
             - name: REDIS_URL
               value: tosi-cc-svc.default
             - name: TALE_URL
               value: http://tosi-tale-svc.default/api/tales
+# RDS로 이관하는 방법
+# (필요시) 기존 mysql pod에 접속해서 mysqldump 명령어 활용해서 덤프파일 만들고 컨테이너 접속해서 로컬로 추출함
+# rds 전용 Security Group 만드는데 초기 데이터 넣을 때 로컬 워크벤치와 연결이 필요할 수 있음
+# 그러면 인바운드룰에 type-> mysql/aurora port-> 3306 source-> custom eks vpc CIDR 주소 추가
+# type-> mysql/aurora port-> 3306 source-> my IP 추가
+# 그 다음 rds 전용 서브넷 그룹 만드는데 연결할 eks vpc 서브넷 중에 public인 것만 넣기 (private, private+public  불가)
+# RDS 만들 때 publicly accessible 옵션 선택
+# 로컬 mysql workbanch에서 RDS Endpoint에 connect할 수 있으면 성공이고 덤프파일 실행하면 이관 완료
+
+# 근데 RDS publicly accessible에 public subnet하면은 보안에 안좋을 수가 있어서
+# RDS 서브넷을 private subnet에 배치하고 RDS private accessible하면은
+# 로컬에서는 접속이 안돼서 자바 파일에 초기데이터 넣는 로직을 넣든지 aws lambda 같은 거 써야 하는듯
+
+# RDS는 네트워크 상의 DB 이기 때문에 application.yml파일에 mysql url부분을 RDS Endpoint로 환경변수 넣어주면 됨
+# EBS는 가상 저장소 같은 개념이고 거기에 볼륨을 연결해서 그 위에 애플리케이션(예: MySQL)을 설치해서 쓰는 구조이고
+# RDS는 MySQL, PostgreSQL 등 데이터베이스 그 자체
+# 따라서 pv, pvc,storageclass 다 필요 없음 오토스케일링 함
