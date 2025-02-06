@@ -1,4 +1,4 @@
-package com.tosi.user.common.JWT;
+package com.tosi.user.JWT;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;

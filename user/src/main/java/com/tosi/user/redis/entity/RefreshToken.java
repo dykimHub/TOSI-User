@@ -1,4 +1,4 @@
-package com.tosi.user.common.redis.entity;
+package com.tosi.user.redis.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

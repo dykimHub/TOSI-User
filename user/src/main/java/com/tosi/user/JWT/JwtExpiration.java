@@ -1,4 +1,4 @@
-package com.tosi.user.common.JWT;
+package com.tosi.user.JWT;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,21 +1,17 @@
-package com.tosi.user.common.JWT;
+package com.tosi.user.JWT;
 
-import com.tosi.user.common.exception.CustomException;
-import com.tosi.user.common.exception.ExceptionCode;
-import com.tosi.user.common.redis.entity.CacheKey;
+import com.tosi.common.exception.CustomException;
+import com.tosi.user.exception.ExceptionCode;
+import com.tosi.user.redis.entity.CacheKey;
 import com.tosi.user.entity.User;
 import com.tosi.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 @Slf4j
 @Service

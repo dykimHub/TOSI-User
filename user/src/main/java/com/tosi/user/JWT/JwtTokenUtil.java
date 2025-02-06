@@ -1,4 +1,4 @@
-package com.tosi.user.common.JWT;
+package com.tosi.user.JWT;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-
-import static com.tosi.user.common.JWT.JwtExpiration.ACCESS_TOKEN_EXPIRATION_TIME;
-import static com.tosi.user.common.JWT.JwtExpiration.REFRESH_TOKEN_EXPIRATION_TIME;
 
 @Slf4j
 @Component
@@ -46,11 +43,11 @@ public class JwtTokenUtil {
     }
 
     public String generateAccessToken(String username) {
-        return doGenerateToken(username, ACCESS_TOKEN_EXPIRATION_TIME.getValue());
+        return doGenerateToken(username, JwtExpiration.ACCESS_TOKEN_EXPIRATION_TIME.getValue());
     }
 
     public String generateRefreshToken(String username) {
-        return doGenerateToken(username, REFRESH_TOKEN_EXPIRATION_TIME.getValue());
+        return doGenerateToken(username, JwtExpiration.REFRESH_TOKEN_EXPIRATION_TIME.getValue());
     }
 
     private String doGenerateToken(String username, long expireTime) { // 1

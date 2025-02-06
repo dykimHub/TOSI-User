@@ -1,4 +1,4 @@
-package com.tosi.user.common.config;
+package com.tosi.common.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
