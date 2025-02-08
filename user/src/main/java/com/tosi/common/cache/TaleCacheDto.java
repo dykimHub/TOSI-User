@@ -40,5 +40,7 @@ public class TaleCacheDto {
             this.taleCacheDtos = taleCacheDtos;
         }
     }
+
+
 }
 

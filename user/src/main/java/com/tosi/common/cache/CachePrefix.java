@@ -5,13 +5,13 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum CacheKey {
+public enum CachePrefix {
     TALE("taleCache::");
 
     private final String prefix;
 
 
-    public String getKey(Long id) {
+    public String buildCacheKey(Long id) {
         return this.prefix + id;
     }
 }
