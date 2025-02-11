@@ -53,6 +53,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         }
 
         favoriteRepository.save(favorite);
+        cacheService.deleteCache(CachePrefix.FAVORITE_TALE.buildCacheKey(userId));
 
         return SuccessResponse.of("즐겨찾는 동화에 성공적으로 추가되었습니다.");
     }
@@ -114,6 +115,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public SuccessResponse deleteFavoriteTale(Long userId, Long taleId) {
         favoriteRepository.deleteByUserIdAndTaleId(userId, taleId);
+        cacheService.deleteCache(CachePrefix.FAVORITE_TALE.buildCacheKey(userId));
         return SuccessResponse.of("해당 동화가 즐겨찾기에서 성공적으로 삭제되었습니다.");
     }
 
