@@ -1,6 +1,8 @@
 package com.tosi.user.service;
 
 
+import com.tosi.common.cache.CachePrefix;
+import com.tosi.common.cache.CacheService;
 import com.tosi.common.cache.TaleCacheDto;
 import com.tosi.common.constants.ParameterKey;
 import com.tosi.common.exception.SuccessResponse;
@@ -9,7 +11,6 @@ import com.tosi.user.repository.FavoriteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +19,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
@@ -27,6 +30,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final RestTemplate restTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheService cacheService;
 
     @Value("${service.tale.url}")
     private String taleURL;
@@ -113,17 +117,31 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     /**
-     * 즐겨찾기가 많이 된 동화 순으로 9개를 반환합니다.
-     * 인기순 동화(#PopularTaleListCache)를 캐시에 등록합니다.
+     * 캐시에서 인기순 동화 ID 목록을 조회합니다.
+     * 캐시에 없다면 DB에서 즐겨찾기가 많은 동화 ID 9개를 조회하고 캐시에 저장합니다.
+     * 동화 ID 목록을 동화 서비스에 요청하여 동화 데이터를 가져옵니다.
      *
-     * @return TaleDto 리스트를 감싼 TaleDtos 객체
+     * @return TaleCacheDto 객체 리스트
      */
-    @Cacheable(value = "PopularTaleListCache", key = "'PopularTaleListCache'")
     @Override
-    public TaleCacheDto.TaleDtos findPopularTales() {
-        return new TaleCacheDto.TaleDtos(favoriteRepository.findPopularTales().stream()
-                .map(f -> restTemplate.getForObject(taleURL + "/" + f, TaleCacheDto.class))
-                .toList()
-        );
+    public List<TaleCacheDto> findPopularTales() {
+        List<Long> popularTaleIds = cacheService.getCache(CachePrefix.POPULAR_TALE.getPrefix(), List.class);
+
+        if (popularTaleIds == null) {
+            popularTaleIds = favoriteRepository.findPopularTales();
+            cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), popularTaleIds, 1, TimeUnit.HOURS); // 1시간 마다 순위 갱신
+        }
+
+        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/bulk", popularTaleIds);
+        List<TaleCacheDto> popularTaleCacheDtos = restTemplate.exchange( //  HTTP 응답을 적절한 타입으로 변환
+                requestURL,
+                HttpMethod.GET,
+                null, // GET 요청이므로 요청 본문 없음
+                new ParameterizedTypeReference<List<TaleCacheDto>>() { // 타입 정보 전달
+                }
+        ).getBody();
+
+        return popularTaleCacheDtos;
+
     }
 }

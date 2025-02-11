@@ -18,5 +18,5 @@ public interface FavoriteService {
 
     SuccessResponse deleteFavoriteTale(Long userId, Long taleId);
 
-    TaleCacheDto.TaleDtos findPopularTales();
+    List<TaleCacheDto> findPopularTales();
 }

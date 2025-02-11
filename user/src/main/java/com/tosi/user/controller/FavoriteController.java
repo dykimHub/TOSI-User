@@ -66,8 +66,8 @@ public class FavoriteController {
 
     @Operation(summary = "동화 인기순 조회")
     @GetMapping("/popular")
-    public ResponseEntity<TaleCacheDto.TaleDtos> findPopularTales() {
-        TaleCacheDto.TaleDtos favoriteTaleDtos = favoriteService.findPopularTales();
+    public ResponseEntity<List<TaleCacheDto>> findPopularTales() {
+        List<TaleCacheDto> favoriteTaleDtos = favoriteService.findPopularTales();
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
 

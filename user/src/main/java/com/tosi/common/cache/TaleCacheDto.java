@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
-import java.util.List;
-
 @RedisHash("TaleDto")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,17 +28,6 @@ public class TaleCacheDto {
         this.thumbnailS3URL = thumbnailS3URL;
         this.ttsLength = ttsLength;
     }
-
-    @Getter
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class TaleDtos {
-        private List<TaleCacheDto> taleCacheDtos;
-
-        public TaleDtos(List<TaleCacheDto> taleCacheDtos) {
-            this.taleCacheDtos = taleCacheDtos;
-        }
-    }
-
 
 }
 
