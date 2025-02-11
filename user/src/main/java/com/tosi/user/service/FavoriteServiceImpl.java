@@ -12,14 +12,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final RestTemplate restTemplate;
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CacheService cacheService;
 
     @Value("${service.tale.url}")
@@ -46,9 +42,6 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Transactional
     @Override
     public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
-        // 동화의 존재 여부를 API 요청을 통해 확인
-        restTemplate.getForObject(taleURL + "/" + taleId, TaleCacheDto.class);
-
         Favorite favorite = Favorite.builder()
                 .userId(userId)
                 .taleId(taleId)
@@ -66,6 +59,7 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     /**
      * 해당 회원의 동화 즐겨찾기 목록을 반환합니다.
+     * 첫 페이지만 캐시를 활용하여 동화 ID를 조회합니다.
      *
      * @param userId   회원 번호
      * @param pageable 페이지 번호, 페이지 크기, 정렬 기준 및 방향을 담고 있는 Pageable 객체
@@ -73,20 +67,27 @@ public class FavoriteServiceImpl implements FavoriteService {
      */
     @Override
     public List<TaleCacheDto> findFavoriteTales(Long userId, Pageable pageable) {
-        Page<Long> favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable);
+        List<Long> favoriteTaleIds;
+
+        // 1페이지라면 캐시에서 동화 ID를 조회하고, 없으면 DB에서 조회하여 캐시에 저장합니다.
+        if (pageable.getPageNumber() == 0) {
+            String cacheKey = CachePrefix.FAVORITE_TALE.buildCacheKey(userId);
+            favoriteTaleIds = cacheService.getCache(cacheKey, List.class);
+
+            if (favoriteTaleIds == null) {
+                favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
+                cacheService.setCache(cacheKey, favoriteTaleIds, 6, TimeUnit.HOURS);
+            }
+        }
+        // 1페이지가 아니라면 DB에서 동화 ID를 조회합니다.
+        else {
+            favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
+        }
 
         if (favoriteTaleIds.isEmpty())
             return Collections.emptyList();
 
-        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/bulk", favoriteTaleIds.getContent());
-
-        return restTemplate.exchange( //  HTTP 응답을 적절한 타입으로 변환
-                requestURL,
-                HttpMethod.GET,
-                null, // GET 요청이므로 요청 본문 없음
-                new ParameterizedTypeReference<List<TaleCacheDto>>() { // 타입 정보 전달
-                }
-        ).getBody(); // ResponseEntity 응답에서 본문 추출
+        return fetchTaleCacheDto(favoriteTaleIds);
 
     }
 
@@ -117,9 +118,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     /**
-     * 캐시에서 인기순 동화 ID 목록을 조회합니다.
-     * 캐시에 없다면 DB에서 즐겨찾기가 많은 동화 ID 9개를 조회하고 캐시에 저장합니다.
-     * 동화 ID 목록을 동화 서비스에 요청하여 동화 데이터를 가져옵니다.
+     * 인기 동화 9개를 반환합니다.
      *
      * @return TaleCacheDto 객체 리스트
      */
@@ -132,16 +131,24 @@ public class FavoriteServiceImpl implements FavoriteService {
             cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), popularTaleIds, 1, TimeUnit.HOURS); // 1시간 마다 순위 갱신
         }
 
-        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/bulk", popularTaleIds);
-        List<TaleCacheDto> popularTaleCacheDtos = restTemplate.exchange( //  HTTP 응답을 적절한 타입으로 변환
+        return fetchTaleCacheDto(popularTaleIds);
+
+    }
+
+    /**
+     *  동화 ID 목록을 동화 서비스에 요청하여 동화 데이터를 가져옵니다.
+     *
+     * @param taleIds 동화 ID 목록
+     * @return TaleCacheDto 객체 리스트
+     */
+    public List<TaleCacheDto> fetchTaleCacheDto(List<Long> taleIds) {
+        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/bulk", taleIds);
+        return restTemplate.exchange( //  HTTP 응답을 적절한 타입으로 변환
                 requestURL,
                 HttpMethod.GET,
                 null, // GET 요청이므로 요청 본문 없음
                 new ParameterizedTypeReference<List<TaleCacheDto>>() { // 타입 정보 전달
                 }
-        ).getBody();
-
-        return popularTaleCacheDtos;
-
+        ).getBody(); // ResponseEntity 응답에서 본문 추출
     }
 }
