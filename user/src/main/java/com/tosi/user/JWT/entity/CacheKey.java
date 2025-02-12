@@ -1,4 +1,4 @@
-package com.tosi.user.redis.entity;
+package com.tosi.user.JWT.entity;
 
 import lombok.Getter;
 

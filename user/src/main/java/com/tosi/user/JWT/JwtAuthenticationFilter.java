@@ -1,7 +1,7 @@
 package com.tosi.user.JWT;
 
 
-import com.tosi.user.redis.repository.LogoutAccessTokenRedisRepository;
+import com.tosi.user.JWT.repository.LogoutAccessTokenRedisRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

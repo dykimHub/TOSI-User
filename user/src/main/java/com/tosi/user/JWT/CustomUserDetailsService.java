@@ -2,7 +2,7 @@ package com.tosi.user.JWT;
 
 import com.tosi.common.exception.CustomException;
 import com.tosi.user.exception.ExceptionCode;
-import com.tosi.user.redis.entity.CacheKey;
+import com.tosi.user.JWT.entity.CacheKey;
 import com.tosi.user.entity.User;
 import com.tosi.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

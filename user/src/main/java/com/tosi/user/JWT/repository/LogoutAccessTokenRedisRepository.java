@@ -1,6 +1,6 @@
-package com.tosi.user.redis.repository;
+package com.tosi.user.JWT.repository;
 
-import com.tosi.user.redis.entity.LogoutAccessToken;
+import com.tosi.user.JWT.entity.LogoutAccessToken;
 import org.springframework.data.repository.CrudRepository;
 
 
