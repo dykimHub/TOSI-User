@@ -4,6 +4,7 @@ package com.tosi.user.service;
 import com.tosi.common.cache.CachePrefix;
 import com.tosi.common.cache.CacheService;
 import com.tosi.common.cache.TaleCacheDto;
+import com.tosi.common.cache.TaleDetailCacheDto;
 import com.tosi.common.constants.ParameterKey;
 import com.tosi.common.exception.SuccessResponse;
 import com.tosi.user.entity.Favorite;
@@ -120,7 +121,9 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     /**
-     * 인기 동화 9개를 반환합니다.
+     * 캐시에서 인기 동화 정보를 조회하여 반환합니다.
+     * 캐시에 없다면 DB에서 조회하여 관심 수가 많은 순서대로 9개를 반환하고 캐시에 저장합니다.
+     * 인기 동화 상세도 캐시에 저장합니다.
      *
      * @return TaleCacheDto 객체 리스트
      */
@@ -133,12 +136,15 @@ public class FavoriteServiceImpl implements FavoriteService {
             cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), popularTaleIds, 1, TimeUnit.HOURS); // 1시간 마다 순위 갱신
         }
 
+        // 인기 동화는 상세 내용도 캐시에 저장합니다.
+        fetchTaleDetailCacheDto(popularTaleIds);
+
         return fetchTaleCacheDto(popularTaleIds);
 
     }
 
     /**
-     *  동화 ID 목록을 동화 서비스에 요청하여 동화 데이터를 가져옵니다.
+     * 동화 ID 목록을 동화 서비스에 요청하여 동화 개요를 가져옵니다.
      *
      * @param taleIds 동화 ID 목록
      * @return TaleCacheDto 객체 리스트
@@ -152,5 +158,21 @@ public class FavoriteServiceImpl implements FavoriteService {
                 new ParameterizedTypeReference<List<TaleCacheDto>>() { // 타입 정보 전달
                 }
         ).getBody(); // ResponseEntity 응답에서 본문 추출
+    }
+
+    /**
+     * 동화 ID 목록을 동화 서비스에 요청하여 동화 상세를 가져옵니다.
+     *
+     * @param popularTaleIds 인기 동화 ID 목록
+     */
+    private void fetchTaleDetailCacheDto(List<Long> popularTaleIds) {
+        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/content/bulk", popularTaleIds);
+        restTemplate.exchange(
+                requestURL,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<TaleDetailCacheDto>>() {
+                }
+        ).getBody();
     }
 }
