@@ -1,7 +1,7 @@
 package com.tosi.user.controller;
 
 
-import com.tosi.common.cache.TaleCacheDto;
+import com.tosi.common.dto.TaleCacheDto;
 import com.tosi.common.exception.SuccessResponse;
 import com.tosi.user.service.AuthService;
 import com.tosi.user.service.FavoriteService;

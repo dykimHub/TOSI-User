@@ -1,7 +1,7 @@
 package com.tosi.user.service;
 
 
-import com.tosi.common.cache.TaleCacheDto;
+import com.tosi.common.dto.TaleCacheDto;
 import com.tosi.common.exception.SuccessResponse;
 import org.springframework.data.domain.Pageable;
 
