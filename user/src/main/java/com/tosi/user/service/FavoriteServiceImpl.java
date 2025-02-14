@@ -1,22 +1,20 @@
 package com.tosi.user.service;
 
 
-import com.tosi.common.cache.CachePrefix;
-import com.tosi.common.cache.CacheService;
-import com.tosi.common.cache.TaleCacheDto;
-import com.tosi.common.cache.TaleDetailCacheDto;
-import com.tosi.common.constants.ParameterKey;
+import com.tosi.common.client.ApiClient;
+import com.tosi.common.constants.ApiPaths;
+import com.tosi.common.constants.CachePrefix;
+import com.tosi.common.dto.TaleCacheDto;
+import com.tosi.common.dto.TaleDetailCacheDto;
 import com.tosi.common.exception.SuccessResponse;
+import com.tosi.common.service.CacheService;
 import com.tosi.user.entity.Favorite;
 import com.tosi.user.repository.FavoriteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
-    private final RestTemplate restTemplate;
     private final CacheService cacheService;
+    private final ApiClient apiClient;
 
     @Value("${service.tale.url}")
     private String taleURL;
@@ -62,6 +60,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     /**
      * 해당 회원의 동화 즐겨찾기 목록을 반환합니다.
      * 첫 페이지만 캐시를 활용하여 동화 ID를 조회합니다.
+     * 조회한 동화 ID를 동화 서비스에 보내서 동화 개요를 반환 받습니다.
      *
      * @param userId   회원 번호
      * @param pageable 페이지 번호, 페이지 크기, 정렬 기준 및 방향을 담고 있는 Pageable 객체
@@ -89,7 +88,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (favoriteTaleIds.isEmpty())
             return Collections.emptyList();
 
-        return fetchTaleCacheDto(favoriteTaleIds);
+        return apiClient.fetchObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, favoriteTaleIds), TaleCacheDto.class);
 
     }
 
@@ -121,9 +120,10 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     /**
-     * 캐시에서 인기 동화 정보를 조회하여 반환합니다.
-     * 캐시에 없다면 DB에서 조회하여 관심 수가 많은 순서대로 9개를 반환하고 캐시에 저장합니다.
-     * 인기 동화 상세도 캐시에 저장합니다.
+     * 인기 동화 9개를 반환합니다.
+     * 캐시에 인기 동화 ID가 존재하면 그대로 사용합니다.
+     * 캐시에 없다면 DB에서 조회하여 관심도가 높은 9개의 동화 ID를 가져옵니다.
+     * 가져온 ID를 동화 서비스에 보내 동화 개요 목록을 반환받습니다.
      *
      * @return TaleCacheDto 객체 리스트
      */
@@ -137,42 +137,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         }
 
         // 인기 동화는 상세 내용도 캐시에 저장합니다.
-        fetchTaleDetailCacheDto(popularTaleIds);
+        apiClient.fetchObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
 
-        return fetchTaleCacheDto(popularTaleIds);
+        return apiClient.fetchObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
 
-    }
-
-    /**
-     * 동화 ID 목록을 동화 서비스에 요청하여 동화 개요를 가져옵니다.
-     *
-     * @param taleIds 동화 ID 목록
-     * @return TaleCacheDto 객체 리스트
-     */
-    public List<TaleCacheDto> fetchTaleCacheDto(List<Long> taleIds) {
-        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/bulk", taleIds);
-        return restTemplate.exchange( //  HTTP 응답을 적절한 타입으로 변환
-                requestURL,
-                HttpMethod.GET,
-                null, // GET 요청이므로 요청 본문 없음
-                new ParameterizedTypeReference<List<TaleCacheDto>>() { // 타입 정보 전달
-                }
-        ).getBody(); // ResponseEntity 응답에서 본문 추출
-    }
-
-    /**
-     * 동화 ID 목록을 동화 서비스에 요청하여 동화 상세를 가져옵니다.
-     *
-     * @param popularTaleIds 인기 동화 ID 목록
-     */
-    private void fetchTaleDetailCacheDto(List<Long> popularTaleIds) {
-        String requestURL = ParameterKey.TALE.buildQueryString(taleURL + "/content/bulk", popularTaleIds);
-        restTemplate.exchange(
-                requestURL,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<TaleDetailCacheDto>>() {
-                }
-        ).getBody();
     }
 }
