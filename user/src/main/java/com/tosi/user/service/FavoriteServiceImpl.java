@@ -88,7 +88,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (favoriteTaleIds.isEmpty())
             return Collections.emptyList();
 
-        return apiClient.fetchObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, favoriteTaleIds), TaleCacheDto.class);
+        return apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, favoriteTaleIds), TaleCacheDto.class);
 
     }
 
@@ -137,9 +137,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         }
 
         // 인기 동화는 상세 내용도 캐시에 저장합니다.
-        apiClient.fetchObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
+        apiClient.getObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
 
-        return apiClient.fetchObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
+        return apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
 
     }
 }

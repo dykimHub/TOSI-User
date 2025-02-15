@@ -9,9 +9,13 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public enum ApiPaths {
+    // 동화 서비스
     MULTI_TALE("/bulk", "taleIds"),
     TALE_DETAIL("/content/", null),
-    MULTI_TALE_DETAIL("/content/bulk", "taleIds");
+    MULTI_TALE_DETAIL("/content/bulk", "taleIds"),
+
+    // 회원 서비스
+    AUTH("/auth", null);
 
 
     private final String path;
@@ -19,6 +23,10 @@ public enum ApiPaths {
 
     public String buildPath(String baseURL) {
         return baseURL + this.path;
+    }
+
+    public String buildPath(String baseURL, Long id) {
+        return baseURL + this.path + id;
     }
 
     public String buildPath(String baseURL, List<Long> ids) {
