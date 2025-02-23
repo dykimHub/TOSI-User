@@ -73,15 +73,15 @@ public class FavoriteServiceImpl implements FavoriteService {
         // 1페이지라면 캐시에서 동화 ID를 조회하고, 없으면 DB에서 조회하여 캐시에 저장합니다.
         if (pageable.getPageNumber() == 0) {
             String cacheKey = CachePrefix.FAVORITE_TALE.buildCacheKey(userId);
-            favoriteTaleIds = cacheService.getCache(cacheKey, List.class);
+            favoriteTaleIds = cacheService.getCache(cacheKey, List.class)
+                    .orElseGet(() -> {
+                                List<Long> newFavoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
+                                cacheService.setCache(cacheKey, newFavoriteTaleIds, 6, TimeUnit.HOURS);
+                                return newFavoriteTaleIds;
 
-            if (favoriteTaleIds == null) {
-                favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
-                cacheService.setCache(cacheKey, favoriteTaleIds, 6, TimeUnit.HOURS);
-            }
-        }
-        // 1페이지가 아니라면 DB에서 동화 ID를 조회합니다.
-        else {
+                            }
+                    );
+        } else { // 1페이지가 아니라면 DB에서 동화 ID를 조회합니다.
             favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
         }
 
@@ -121,25 +121,26 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     /**
      * 인기 동화 9개를 반환합니다.
-     * 캐시에 인기 동화 ID가 존재하면 그대로 사용합니다.
+     * 캐시에 인기 동화 목록이 존재하면 그대로 사용합니다.
      * 캐시에 없다면 DB에서 조회하여 관심도가 높은 9개의 동화 ID를 가져옵니다.
-     * 가져온 ID를 동화 서비스에 보내 동화 개요 목록을 반환받습니다.
+     * 가져온 ID를 동화 서비스에 보내 동화 개요 목록을 반환받고 동화 상세 내용과 함께 캐시에 저장합니다.
      *
      * @return TaleCacheDto 객체 리스트
      */
     @Override
     public List<TaleCacheDto> findPopularTales() {
-        List<Long> popularTaleIds = cacheService.getCache(CachePrefix.POPULAR_TALE.getPrefix(), List.class);
+        List<TaleCacheDto> popularTaleList = cacheService.getCache(CachePrefix.POPULAR_TALE.getPrefix(), List.class)
+                .orElseGet(() -> {
+                    List<Long> popularTaleIds = favoriteRepository.findPopularTales();
+                    List<TaleCacheDto> newPopularTaleList = apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
+                    // 상세 내용 조회 API도 호출해서 캐시에 저장
+                    apiClient.getObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
+                    // 인기 동화 리스트 전체를 캐시에 저장, 1시간마다 순위 갱신
+                    cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), newPopularTaleList, 1, TimeUnit.HOURS);
+                    return newPopularTaleList;
+                });
 
-        if (popularTaleIds == null) {
-            popularTaleIds = favoriteRepository.findPopularTales();
-            cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), popularTaleIds, 1, TimeUnit.HOURS); // 1시간 마다 순위 갱신
-        }
-
-        // 인기 동화는 상세 내용도 캐시에 저장합니다.
-        apiClient.getObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
-
-        return apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
+        return popularTaleList;
 
     }
 }
