@@ -85,9 +85,6 @@ public class FavoriteServiceImpl implements FavoriteService {
             favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
         }
 
-        if (favoriteTaleIds.isEmpty())
-            return Collections.emptyList();
-
         return apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, favoriteTaleIds), TaleCacheDto.class);
 
     }
