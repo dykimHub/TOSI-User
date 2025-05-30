@@ -1,9 +1,9 @@
 package com.tosi.user.service;
 
-import com.tosi.user.common.JWT.TokenInfo;
-import com.tosi.user.common.exception.CustomException;
-import com.tosi.user.common.exception.ExceptionCode;
-import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.common.exception.CustomException;
+import com.tosi.common.exception.SuccessResponse;
+import com.tosi.user.JWT.TokenInfo;
+import com.tosi.user.exception.ExceptionCode;
 import com.tosi.user.dto.*;
 import com.tosi.user.entity.Child;
 import com.tosi.user.entity.User;
