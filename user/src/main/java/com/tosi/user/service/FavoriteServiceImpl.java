@@ -1,27 +1,31 @@
 package com.tosi.user.service;
 
-import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.TaleDto;
+
+import com.tosi.common.client.ApiClient;
+import com.tosi.common.constants.ApiPaths;
+import com.tosi.common.constants.CachePrefix;
+import com.tosi.common.dto.TaleCacheDto;
+import com.tosi.common.dto.TaleDetailCacheDto;
+import com.tosi.common.exception.SuccessResponse;
+import com.tosi.common.service.CacheService;
 import com.tosi.user.entity.Favorite;
 import com.tosi.user.repository.FavoriteRepository;
-import com.tosi.user.repository.TaleDtoRedisRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
 public class FavoriteServiceImpl implements FavoriteService {
-
-    private static final String TALE_CACHE_PREFIX = "taleCache::";
     private final FavoriteRepository favoriteRepository;
-    private final TaleDtoRedisRepository taleDtoRedisRepository;
-    private final RestTemplate restTemplate;
+    private final CacheService cacheService;
+    private final ApiClient apiClient;
 
     @Value("${service.tale.url}")
     private String taleURL;
@@ -37,9 +41,6 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Transactional
     @Override
     public SuccessResponse addFavoriteTale(Long userId, Long taleId) {
-        // 동화의 존재 여부를 API 요청을 통해 확인
-        restTemplate.getForObject(taleURL + "/" + taleId, TaleDto.class);
-
         Favorite favorite = Favorite.builder()
                 .userId(userId)
                 .taleId(taleId)
@@ -51,26 +52,40 @@ public class FavoriteServiceImpl implements FavoriteService {
         }
 
         favoriteRepository.save(favorite);
+        cacheService.deleteCache(CachePrefix.FAVORITE_TALE.buildCacheKey(userId));
 
         return SuccessResponse.of("즐겨찾는 동화에 성공적으로 추가되었습니다.");
     }
 
     /**
      * 해당 회원의 동화 즐겨찾기 목록을 반환합니다.
+     * 첫 페이지만 캐시를 활용하여 동화 ID를 조회합니다.
+     * 조회한 동화 ID를 동화 서비스에 보내서 동화 개요를 반환 받습니다.
      *
      * @param userId   회원 번호
      * @param pageable 페이지 번호, 페이지 크기, 정렬 기준 및 방향을 담고 있는 Pageable 객체
-     * @return TaleDto 객체 리스트를 감싼 TaleDtos 객체
+     * @return TaleDto 객체 리스트
      */
     @Override
-    public TaleDto.TaleDtos findFavoriteTales(Long userId, Pageable pageable) {
-        Page<Long> favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable);
+    public List<TaleCacheDto> findFavoriteTales(Long userId, Pageable pageable) {
+        List<Long> favoriteTaleIds;
 
-        return new TaleDto.TaleDtos(favoriteTaleIds.stream()
-                .map(f -> taleDtoRedisRepository.findById(TALE_CACHE_PREFIX + f)
-                        .orElse(restTemplate.getForObject(taleURL + "/" + f, TaleDto.class)))
-                .toList()
-        );
+        // 1페이지라면 캐시에서 동화 ID를 조회하고, 없으면 DB에서 조회하여 캐시에 저장합니다.
+        if (pageable.getPageNumber() == 0) {
+            String cacheKey = CachePrefix.FAVORITE_TALE.buildCacheKey(userId);
+            favoriteTaleIds = cacheService.getCache(cacheKey, List.class)
+                    .orElseGet(() -> {
+                                List<Long> newFavoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
+                                cacheService.setCache(cacheKey, newFavoriteTaleIds, 6, TimeUnit.HOURS);
+                                return newFavoriteTaleIds;
+
+                            }
+                    );
+        } else { // 1페이지가 아니라면 DB에서 동화 ID를 조회합니다.
+            favoriteTaleIds = favoriteRepository.findByTaleIdsByUserId(userId, pageable).getContent();
+        }
+
+        return apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, favoriteTaleIds), TaleCacheDto.class);
 
     }
 
@@ -97,22 +112,32 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public SuccessResponse deleteFavoriteTale(Long userId, Long taleId) {
         favoriteRepository.deleteByUserIdAndTaleId(userId, taleId);
+        cacheService.deleteCache(CachePrefix.FAVORITE_TALE.buildCacheKey(userId));
         return SuccessResponse.of("해당 동화가 즐겨찾기에서 성공적으로 삭제되었습니다.");
     }
 
     /**
-     * 즐겨찾기가 많이 된 동화 순으로 9개를 반환합니다.
-     * 인기순 동화(#PopularTaleListCache)를 캐시에 등록합니다.
+     * 인기 동화 9개를 반환합니다.
+     * 캐시에 인기 동화 목록이 존재하면 그대로 사용합니다.
+     * 캐시에 없다면 DB에서 조회하여 관심도가 높은 9개의 동화 ID를 가져옵니다.
+     * 가져온 ID를 동화 서비스에 보내 동화 개요 목록을 반환받고 동화 상세 내용과 함께 캐시에 저장합니다.
      *
-     * @return TaleDto 리스트를 감싼 TaleDtos 객체
+     * @return TaleCacheDto 객체 리스트
      */
-    @Cacheable(value = "PopularTaleListCache", key = "'PopularTaleListCache'")
     @Override
-    public TaleDto.TaleDtos findPopularTales() {
-        return new TaleDto.TaleDtos(favoriteRepository.findPopularTales().stream()
-                .map(f -> taleDtoRedisRepository.findById(TALE_CACHE_PREFIX + f)
-                        .orElse(restTemplate.getForObject(taleURL + "/" + f, TaleDto.class)))
-                .toList()
-        );
+    public List<TaleCacheDto> findPopularTales() {
+        List<TaleCacheDto> popularTaleList = cacheService.getCache(CachePrefix.POPULAR_TALE.getPrefix(), List.class)
+                .orElseGet(() -> {
+                    List<Long> popularTaleIds = favoriteRepository.findPopularTales();
+                    List<TaleCacheDto> newPopularTaleList = apiClient.getObjectList(ApiPaths.MULTI_TALE.buildPath(taleURL, popularTaleIds), TaleCacheDto.class);
+                    // 상세 내용 조회 API도 호출해서 캐시에 저장
+                    apiClient.getObjectList(ApiPaths.MULTI_TALE_DETAIL.buildPath(taleURL, popularTaleIds), TaleDetailCacheDto.class);
+                    // 인기 동화 리스트 전체를 캐시에 저장, 1시간마다 순위 갱신
+                    cacheService.setCache(CachePrefix.POPULAR_TALE.getPrefix(), newPopularTaleList, 1, TimeUnit.HOURS);
+                    return newPopularTaleList;
+                });
+
+        return popularTaleList;
+
     }
 }

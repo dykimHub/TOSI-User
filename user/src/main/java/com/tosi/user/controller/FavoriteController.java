@@ -1,7 +1,8 @@
 package com.tosi.user.controller;
 
-import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.dto.TaleDto;
+
+import com.tosi.common.dto.TaleCacheDto;
+import com.tosi.common.exception.SuccessResponse;
 import com.tosi.user.service.AuthService;
 import com.tosi.user.service.FavoriteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/users/favorites")
@@ -32,12 +35,12 @@ public class FavoriteController {
 
     @Operation(summary = "동화 즐겨찾기 목록 조회")
     @GetMapping
-    public ResponseEntity<TaleDto.TaleDtos> findFavoriteTales(@RequestHeader("Authorization") String accessToken, @RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<TaleCacheDto>> findFavoriteTales(@RequestHeader("Authorization") String accessToken, @RequestParam(defaultValue = "0") int page) {
         Long userId = authService.findUserAuthorization(accessToken);
         Pageable pageable = PageRequest.of(page, 9, Sort.by(Sort.Direction.DESC, "regDate"));
-        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findFavoriteTales(userId, pageable);
+        List<TaleCacheDto> favoriteTaleCacheDtos = favoriteService.findFavoriteTales(userId, pageable);
         return ResponseEntity.ok()
-                .body(favoriteTaleDtos);
+                .body(favoriteTaleCacheDtos);
 
     }
 
@@ -63,8 +66,8 @@ public class FavoriteController {
 
     @Operation(summary = "동화 인기순 조회")
     @GetMapping("/popular")
-    public ResponseEntity<TaleDto.TaleDtos> findPopularTales() {
-        TaleDto.TaleDtos favoriteTaleDtos = favoriteService.findPopularTales();
+    public ResponseEntity<List<TaleCacheDto>> findPopularTales() {
+        List<TaleCacheDto> favoriteTaleDtos = favoriteService.findPopularTales();
         return ResponseEntity.ok()
                 .body(favoriteTaleDtos);
 

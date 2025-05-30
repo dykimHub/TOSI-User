@@ -1,15 +1,15 @@
 package com.tosi.user.service;
 
-import com.tosi.user.common.JWT.JwtExpiration;
-import com.tosi.user.common.JWT.JwtTokenUtil;
-import com.tosi.user.common.JWT.TokenInfo;
-import com.tosi.user.common.exception.CustomException;
-import com.tosi.user.common.exception.ExceptionCode;
-import com.tosi.user.common.exception.SuccessResponse;
-import com.tosi.user.common.redis.entity.LogoutAccessToken;
-import com.tosi.user.common.redis.entity.RefreshToken;
-import com.tosi.user.common.redis.repository.LogoutAccessTokenRedisRepository;
-import com.tosi.user.common.redis.repository.RefreshTokenRedisRepository;
+import com.tosi.common.exception.CustomException;
+import com.tosi.common.exception.SuccessResponse;
+import com.tosi.user.JWT.JwtExpiration;
+import com.tosi.user.JWT.JwtTokenUtil;
+import com.tosi.user.JWT.TokenInfo;
+import com.tosi.user.exception.ExceptionCode;
+import com.tosi.user.JWT.entity.LogoutAccessToken;
+import com.tosi.user.JWT.entity.RefreshToken;
+import com.tosi.user.JWT.repository.LogoutAccessTokenRedisRepository;
+import com.tosi.user.JWT.repository.RefreshTokenRedisRepository;
 import com.tosi.user.dto.LoginDto;
 import com.tosi.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
 
-import static com.tosi.user.common.JWT.JwtExpiration.REFRESH_TOKEN_EXPIRATION_TIME;
+import static com.tosi.user.JWT.JwtExpiration.REFRESH_TOKEN_EXPIRATION_TIME;
 
 @Slf4j
 @RequiredArgsConstructor

@@ -1,7 +1,7 @@
 package com.tosi.user.controller;
 
-import com.tosi.user.common.JWT.TokenInfo;
-import com.tosi.user.common.exception.SuccessResponse;
+import com.tosi.common.exception.SuccessResponse;
+import com.tosi.user.JWT.TokenInfo;
 import com.tosi.user.dto.*;
 import com.tosi.user.service.AuthService;
 import com.tosi.user.service.UserService;
